@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '(.tool_response.filePath // .tool_input.file_path // empty)' | { read -r f; case \"$f\" in *.ts|*.tsx|*.css) (cd \"/Users/macbookair/dev/projects/chess-web\" && pnpm exec biome check --write --no-errors-on-unmatched \"$f\") ;; esac; } 2>/dev/null || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); if printf '%s' \"$cmd\" | grep -Eq '(^|[;&|[:space:]])pnpm[[:space:]]+(add|install)[[:space:]]+[A-Za-z@./_-]'; then if printf '%s' \"$cmd\" | grep -Eq '(chess\\.js|stockfish)'; then exit 0; fi; jq -n --arg reason \"spec/07-implementation-plan.md restricts new dependencies to chess.js and stockfish only. This command adds a different package - stop and confirm with the user before proceeding.\" '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"ask\",permissionDecisionReason:$reason}}'; fi",
+            "timeout": 15
+          }
+        ]
+      }
+    ]
+  }
+}

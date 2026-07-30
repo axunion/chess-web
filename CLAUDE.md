@@ -26,6 +26,10 @@ messages, AI-readable instruction files, and docs meant for readers (README and 
 like). This rule applies to artifacts, not conversation: chat replies and
 development-time planning notes follow the language the user is working in.
 
+**Exception:** `spec/*.md` is written in Japanese by design (user-confirmed) and stays
+that way, including any spec-correction edits made during implementation. Code examples,
+identifiers, and diagram labels inside those docs remain in English as usual.
+
 ## Code Structure
 
 - Name variables, functions, and files to communicate intent.
