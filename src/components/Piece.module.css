@@ -1,0 +1,23 @@
+.piece {
+  position: absolute;
+  width: 12.5%;
+  height: 12.5%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  translate: 0 0;
+  transition: translate var(--dur-move) var(--ease-move);
+  filter: var(--shadow-piece);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.piece svg {
+  width: 88%;
+  height: 88%;
+}
+
+.interactive {
+  pointer-events: auto;
+  cursor: pointer;
+}

@@ -1,0 +1,83 @@
+.frame {
+  display: grid;
+  grid-template-columns: 1.25rem 1fr;
+  grid-template-rows: 1fr 1.25rem;
+  grid-template-areas:
+    "ranks board"
+    "corner files";
+  gap: 0.35rem;
+  width: fit-content;
+  margin-inline: auto;
+  padding: 0.75rem;
+  background: var(--board-frame);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+}
+
+.board {
+  grid-area: board;
+  position: relative;
+  aspect-ratio: 1;
+  /* Adjusted from spec's min(100vw - 2rem, 100dvh - 14rem, 560px) to also
+     subtract the .frame padding and rank/file coordinate-label gutters. */
+  width: min(100vw - 4.5rem, 100dvh - 16rem, 560px);
+}
+
+.squares {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  overflow: hidden;
+  border-radius: calc(var(--radius) - 4px);
+}
+
+.square {
+  margin: 0;
+  padding: 0;
+  border: none;
+  cursor: default;
+}
+
+.light {
+  background: var(--board-light);
+}
+
+.dark {
+  background: var(--board-dark);
+}
+
+.pieceLayer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+.corner {
+  grid-area: corner;
+}
+
+.ranks,
+.files {
+  display: flex;
+  color: var(--board-coord);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  user-select: none;
+}
+
+.ranks {
+  grid-area: ranks;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.files {
+  grid-area: files;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+}

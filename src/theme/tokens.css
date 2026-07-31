@@ -1,0 +1,42 @@
+:root {
+  /* Board — walnut & maple */
+  --board-light: #ead9b8; /* maple */
+  --board-dark: #9e6b4a; /* walnut */
+  --board-frame: #5d4030; /* outer frame */
+  --board-coord: #f7efe0; /* rank/file labels on frame */
+
+  /* Feedback overlays (semi-transparent, layered on squares) */
+  --hl-selected: rgb(218 165 32 / 55%); /* goldenrod */
+  --hl-legal-dot: rgb(60 40 20 / 35%);
+  --hl-last-move: rgb(205 180 90 / 40%);
+  --hl-check: rgb(178 34 34 / 55%); /* firebrick on king square */
+
+  /* Surface & text */
+  --surface: #f4ede1; /* parchment background */
+  --surface-raised: #fffdf7;
+  --ink: #2b2118;
+  --ink-muted: #7a6a58;
+  --accent: #7c4a2d;
+
+  /* Typography */
+  --font-display:
+    "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-ui: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+
+  /* Shape & elevation */
+  --radius: 10px;
+  --shadow-piece: drop-shadow(0 2px 2px rgb(0 0 0 / 30%));
+  --shadow-panel: 0 2px 12px rgb(43 33 24 / 12%);
+
+  /* Motion */
+  --dur-move: 160ms;
+  --dur-fade: 120ms;
+  --ease-move: cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-move: 0ms;
+    --dur-fade: 0ms;
+  }
+}

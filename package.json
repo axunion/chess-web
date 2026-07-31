@@ -26,8 +26,10 @@
   },
   "dependencies": {
     "@kobalte/core": "^0.13.12",
+    "chess.js": "^1.4.0",
     "lucide-solid": "^1.27.0",
-    "solid-js": "^1.9.14"
+    "solid-js": "^1.9.14",
+    "stockfish": "^18.0.8"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.5",
