@@ -246,6 +246,32 @@ describe("chessGame", () => {
   it("loadPgn throws on invalid PGN", () => {
     expect(() => game.loadPgn("not a valid pgn at all $$$")).toThrow();
   });
+
+  it("loadPgn resets to a clean position when a later move in an otherwise well-formed PGN is illegal", () => {
+    // Mirrors real usage (gameStore always calls reset() before loadPgn —
+    // see createGameStore()/boot()), so `pieces` is populated before the
+    // failing call rather than starting out empty.
+    game.reset();
+
+    // Grammatically valid movetext, but "Nf6" is illegal for white here (chess.js
+    // replays moves one at a time internally and throws mid-replay, after "e4 e5"
+    // have already been applied to its own board).
+    const badPgn = "1. e4 e5 2. Nf6 Nc6";
+
+    expect(() => game.loadPgn(badPgn)).toThrow();
+
+    // The wrapper must still be internally consistent: its own tracked state
+    // (untouched by the failed call, since it's only reassigned on success)
+    // matches a genuinely reset chess.js board, not one left mid-replay at "e4 e5".
+    expect(game.history()).toEqual([]);
+    expect(game.legalTargets("e2")).toEqual(["e3", "e4"]);
+
+    // A subsequent legal move must succeed against a clean board rather than
+    // fail (or silently apply on top of the corrupted "e4 e5" position).
+    const result = game.move("e2", "e4");
+    expect(result.entry.san).toBe("e4");
+    expect(result.snapshot.pieces).toHaveLength(32);
+  });
 });
 
 const STALEMATE_MOVES: MoveTuple[] = [

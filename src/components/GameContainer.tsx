@@ -23,9 +23,11 @@ function capturedBy(history: HistoryEntry[], color: Color): PieceSymbol[] {
 
 export function GameContainer() {
   const store = createGameStore();
-  // No persistence yet (M3), so every load starts at the NewGameDialog per
-  // the "no saved data" branch of spec/02-state-persistence.md §6.
-  const [newGameDialogOpen, setNewGameDialogOpen] = createSignal(true);
+  // Restore a saved game on startup (spec/02-state-persistence.md §6); open
+  // NewGameDialog only when there was nothing to restore (no save, or a
+  // corrupted one that boot() already discarded).
+  const restored = store.boot();
+  const [newGameDialogOpen, setNewGameDialogOpen] = createSignal(!restored);
 
   function handleStart(config: Parameters<typeof store.newGame>[0]): void {
     store.newGame(config);

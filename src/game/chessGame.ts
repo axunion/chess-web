@@ -162,7 +162,17 @@ export function createChessGame(): ChessGame {
     },
 
     loadPgn(pgn: string) {
-      chess.loadPgn(pgn);
+      try {
+        chess.loadPgn(pgn);
+      } catch (err) {
+        // chess.js replays the PGN's moves one at a time against its
+        // internal board; a mid-replay throw leaves that board partway
+        // through the game instead of at the pre-call position. Reset it so
+        // the wrapper's own state (unchanged on this failure path) stays in
+        // sync with chess.js truth.
+        chess.reset();
+        throw err;
+      }
       historyEntries = chess.history({ verbose: true }).map((m) => ({
         san: m.san,
         from: m.from,

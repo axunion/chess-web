@@ -7,9 +7,12 @@ import type {
   PieceSymbol,
   Square,
 } from "../game/types";
+import { clearGame, loadGame, saveGame } from "../persistence/storage";
 
 export interface GameStore {
   state: GameState;
+  /** Restore a saved game on startup (spec/02 §6). Returns whether a valid save was restored. */
+  boot(): boolean;
   newGame(config: GameConfig): void;
   tapSquare(square: Square): void;
   confirmPromotion(piece: PieceSymbol): void;
@@ -27,12 +30,13 @@ const DEFAULT_CONFIG: GameConfig = {
 /**
  * Owns the single source of reactive game state and every mutation to it
  * (see spec/01-architecture.md §1). Engine-related behavior
- * (`requestEngineMove`) is stubbed as a no-op until M4 wires up Stockfish;
- * persistence (save/restore) is wired in M3.
+ * (`requestEngineMove`) is stubbed as a no-op until M4 wires up Stockfish.
  */
 export function createGameStore(): GameStore {
   const chessGame = createChessGame();
   const initial = chessGame.reset();
+  /** PGN of the current game, kept in sync with every applied snapshot (not part of GameState — see spec/02 §2). */
+  let currentPgn = initial.pgn;
 
   const [state, setState] = createStore<GameState>({
     config: DEFAULT_CONFIG,
@@ -77,8 +81,20 @@ export function createGameStore(): GameStore {
     setState({ selected: null, legalTargets: [] });
   }
 
+  /** Persists the current game (spec/02 §5: after every move, on resign, on new game). */
+  function persist(resignedBy?: Color): void {
+    saveGame({
+      version: 1,
+      savedAt: new Date().toISOString(),
+      config: state.config,
+      pgn: currentPgn,
+      resignedBy,
+    });
+  }
+
   /** Common post-move processing shared by human and (later) engine moves. */
   function afterMove(result: MoveResult): void {
+    currentPgn = result.snapshot.pgn;
     setState(
       produce((s) => {
         s.fen = result.snapshot.fen;
@@ -92,7 +108,7 @@ export function createGameStore(): GameStore {
         s.pendingPromotion = null;
       }),
     );
-    // Persistence (saveGame after every move) is wired in M3.
+    persist();
     if (
       state.status.kind === "playing" &&
       state.config.mode === "cpu" &&
@@ -104,6 +120,7 @@ export function createGameStore(): GameStore {
 
   function newGame(config: GameConfig): void {
     const snapshot = chessGame.reset();
+    currentPgn = snapshot.pgn;
     setState({
       config,
       fen: snapshot.fen,
@@ -117,10 +134,65 @@ export function createGameStore(): GameStore {
       lastMove: null,
       engine: "off",
     });
-    // Persistence (saveGame of the fresh position) is wired in M3.
+    persist();
     if (config.mode === "cpu" && config.playerColor !== snapshot.turn) {
       requestEngineMove();
     }
+  }
+
+  /**
+   * Restores a saved game on startup (spec/02 §6). Returns `true` when a
+   * valid save was found and applied, `false` when there was none or it was
+   * corrupted (in which case the caller should fall back to NewGameDialog).
+   * The already-reset initial state from store creation is left untouched
+   * on the `false` path.
+   */
+  function boot(): boolean {
+    const saved = loadGame();
+    if (!saved) return false;
+
+    let snapshot: ReturnType<typeof chessGame.loadPgn>;
+    try {
+      snapshot = chessGame.loadPgn(saved.pgn);
+    } catch (err) {
+      console.warn(
+        "gameStore: saved game PGN is corrupted, discarding it",
+        err,
+      );
+      clearGame();
+      return false;
+    }
+
+    currentPgn = snapshot.pgn;
+    const history = chessGame.history();
+    const lastEntry = history.at(-1);
+    setState({
+      config: saved.config,
+      fen: snapshot.fen,
+      turn: snapshot.turn,
+      pieces: snapshot.pieces,
+      history,
+      status: saved.resignedBy
+        ? { kind: "resigned", winner: saved.resignedBy === "w" ? "b" : "w" }
+        : snapshot.status,
+      selected: null,
+      legalTargets: [],
+      pendingPromotion: null,
+      lastMove: lastEntry ? { from: lastEntry.from, to: lastEntry.to } : null,
+      engine: "off",
+    });
+
+    // Resuming CPU-turn engine thinking on restore is M4 work; the
+    // requestEngineMove() call below is a no-op stub until then.
+    if (
+      saved.config.mode === "cpu" &&
+      state.status.kind === "playing" &&
+      state.turn !== saved.config.playerColor
+    ) {
+      requestEngineMove();
+    }
+
+    return true;
   }
 
   function tapSquare(square: Square): void {
@@ -182,7 +254,7 @@ export function createGameStore(): GameStore {
       selected: null,
       legalTargets: [],
     });
-    // Persistence (saveGame of the resigned game) is wired in M3.
+    persist(color);
   }
 
   function requestEngineMove(): void {
@@ -192,6 +264,7 @@ export function createGameStore(): GameStore {
 
   return {
     state,
+    boot,
     newGame,
     tapSquare,
     confirmPromotion,

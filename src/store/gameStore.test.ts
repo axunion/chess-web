@@ -6,6 +6,7 @@ describe("gameStore (PvP)", () => {
   let store: GameStore;
 
   beforeEach(() => {
+    localStorage.clear();
     store = createGameStore();
   });
 
