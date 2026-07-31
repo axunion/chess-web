@@ -5,3 +5,53 @@
   justify-content: center;
   padding: 1.5rem;
 }
+
+/* Children are, in DOM order: GameStatusBar, CapturedPieces(opponent),
+   Chessboard, CapturedPieces(self), MoveHistory. Grid areas below let us
+   reorder them into a board + sidebar layout on desktop without touching
+   the DOM order that the mobile single-column layout already relies on. */
+.layout {
+  display: grid;
+  grid-template-areas:
+    "status"
+    "opponent"
+    "board"
+    "self"
+    "history";
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 560px;
+}
+
+.layout > :nth-child(1) {
+  grid-area: status;
+}
+
+.layout > :nth-child(2) {
+  grid-area: opponent;
+}
+
+.layout > :nth-child(3) {
+  grid-area: board;
+}
+
+.layout > :nth-child(4) {
+  grid-area: self;
+}
+
+.layout > :nth-child(5) {
+  grid-area: history;
+}
+
+@media (min-width: 64rem) {
+  .layout {
+    grid-template-columns: auto 20rem;
+    grid-template-areas:
+      "board status"
+      "board opponent"
+      "board self"
+      "board history";
+    align-items: start;
+    max-width: none;
+  }
+}
