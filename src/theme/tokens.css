@@ -25,8 +25,12 @@
 
   /* Shape & elevation */
   --radius: 10px;
-  --shadow-piece: drop-shadow(0 2px 2px rgb(0 0 0 / 30%));
+  --shadow-piece: drop-shadow(0 1px 1px rgb(0 0 0 / 35%))
+    drop-shadow(0 3px 4px rgb(0 0 0 / 20%));
   --shadow-panel: 0 2px 12px rgb(43 33 24 / 12%);
+  --shadow-frame:
+    0 10px 28px rgb(43 33 24 / 30%), 0 2px 6px rgb(43 33 24 / 20%),
+    inset 0 1px 0 rgb(255 255 255 / 6%);
 
   /* Motion */
   --dur-move: 160ms;
@@ -39,4 +43,66 @@
     --dur-move: 0ms;
     --dur-fade: 0ms;
   }
+}
+
+/* Shared dialog/overlay enter-exit animations (Kobalte data-expanded/data-closed).
+   Defined once here — globally imported via index.css — since lightningcss scopes
+   @keyframes per CSS module and these are reused across every dialog component.
+
+   Each name is also exposed as an unscoped custom property below. lightningcss's CSS
+   modules transform always rewrites a *bare* keyframe identifier referenced from an
+   `animation`/`animation-name` declaration inside a `.module.css` file to that file's
+   own scope hash — even when the `@keyframes` rule itself lives in this global,
+   non-module file. Referencing the name indirectly through var(...) sidesteps that:
+   custom property references aren't scoped by CSS modules (dashed idents are only
+   scoped when explicitly opted in), so the literal keyframe name is preserved as-is. */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes popOut {
+  from {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+}
+
+:root {
+  --kf-fade-in: fadeIn;
+  --kf-fade-out: fadeOut;
+  --kf-pop-in: popIn;
+  --kf-pop-out: popOut;
 }

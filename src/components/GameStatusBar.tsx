@@ -26,7 +26,7 @@ export function GameStatusBar(props: GameStatusBarProps) {
   return (
     <div class={styles.container}>
       <div class={styles.bar}>
-        <div class={styles.status}>
+        <div class={styles.status} role="status" aria-live="polite">
           <span class={styles.statusText}>{statusText()}</span>
           {isCheck() && <span class={styles.checkBadge}>Check!</span>}
         </div>
@@ -73,13 +73,13 @@ export function GameStatusBar(props: GameStatusBarProps) {
         </div>
       </div>
       <Show when={isThinking()}>
-        <div class={styles.thinkingBanner}>
+        <div class={styles.thinkingBanner} role="status">
           <span class={styles.spinner} aria-hidden="true" />
           <span>Stockfish is thinking…</span>
         </div>
       </Show>
       <Show when={isEngineError()}>
-        <div class={styles.errorBanner}>
+        <div class={styles.errorBanner} role="alert">
           <span>Engine error — Stockfish is unavailable.</span>
           <button
             type="button"

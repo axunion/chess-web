@@ -11,7 +11,7 @@
   padding: 0.75rem;
   background: var(--board-frame);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-panel);
+  box-shadow: var(--shadow-frame);
 }
 
 .board {
@@ -40,6 +40,24 @@
   padding: 0;
   border: none;
   cursor: pointer;
+}
+
+/* .squares clips its content (overflow: hidden, for the frame's rounded
+   corners), which would otherwise clip the browser's default outline on
+   edge squares — use an inset ring instead so keyboard focus stays visible
+   on every square. */
+.square:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 0.2rem var(--accent);
+}
+
+/* When a legal-capture square receives keyboard focus, layer the focus ring
+   on top of the capture ring instead of letting the higher-specificity
+   :focus-visible box-shadow silently replace it — both cues stay visible. */
+.square.legalCapture:focus-visible {
+  box-shadow:
+    inset 0 0 0 0.2rem var(--accent),
+    inset 0 0 0 0.4rem var(--hl-legal-dot);
 }
 
 .light {

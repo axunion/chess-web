@@ -84,4 +84,4 @@
 - [ ] iPhone SE 相当(375px)〜 デスクトップで盤が常に 1:1、レイアウト破綻なし
 - [ ] 駒移動・キャスリングのアニメーションが滑らか(CPU の手も lastMove ハイライトで追える)
 - [ ] `pnpm check` と `pnpm test` が警告・失敗ゼロで通る
-- [ ] コード・UI 文言がすべて英語、README に Cburnett 帰属表記がある
+- [ ] コード・UI 文言がすべて英語。駒 SVG に Cburnett セット([04](04-components-styling.md) §4)を採用した場合は README に Cburnett 帰属表記がある。同 §4 のフォールバック(自作シルエット)を採用した場合は、Cburnett ではなく自作である旨を README に明記する

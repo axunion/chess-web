@@ -6,6 +6,14 @@
   backdrop-filter: blur(2px);
 }
 
+.overlay[data-expanded] {
+  animation: var(--kf-fade-in) var(--dur-fade) ease-out;
+}
+
+.overlay[data-closed] {
+  animation: var(--kf-fade-out) var(--dur-fade) ease-in;
+}
+
 .positioner {
   position: fixed;
   inset: 0;
@@ -22,6 +30,14 @@
   box-shadow: var(--shadow-panel);
   padding: 1.25rem;
   min-width: 16rem;
+}
+
+.content[data-expanded] {
+  animation: var(--kf-pop-in) var(--dur-fade) var(--ease-move);
+}
+
+.content[data-closed] {
+  animation: var(--kf-pop-out) var(--dur-fade) var(--ease-move);
 }
 
 .title {

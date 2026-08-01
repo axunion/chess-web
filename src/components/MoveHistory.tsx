@@ -25,7 +25,7 @@ function toRows(history: HistoryEntry[]): MoveRow[] {
 }
 
 export function MoveHistory(props: MoveHistoryProps) {
-  let scrollRef: HTMLDivElement | undefined;
+  let scrollRef: HTMLElement | undefined;
 
   createEffect(
     on(
@@ -37,7 +37,13 @@ export function MoveHistory(props: MoveHistoryProps) {
   );
 
   return (
-    <div class={styles.container} ref={scrollRef}>
+    <section
+      class={styles.container}
+      ref={scrollRef}
+      // biome-ignore lint/a11y/noNoninteractiveTabindex: scrollable region — tabIndex lets keyboard users focus and scroll it with arrow keys (spec/06 §3).
+      tabIndex={0}
+      aria-label="Move history"
+    >
       <table class={styles.table}>
         <tbody>
           <For each={toRows(props.history)}>
@@ -51,6 +57,6 @@ export function MoveHistory(props: MoveHistoryProps) {
           </For>
         </tbody>
       </table>
-    </div>
+    </section>
   );
 }
