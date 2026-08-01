@@ -1,0 +1,33 @@
+/**
+ * Pure UCI (Universal Chess Interface) string helpers for talking to the
+ * Stockfish worker (see spec/03-engine.md §2). No Worker/DOM dependency —
+ * kept pure so the protocol framing is unit-testable in isolation.
+ */
+
+export const cmdSetSkill = (level: number): string =>
+  `setoption name Skill Level value ${level}`;
+
+export const cmdPosition = (fen: string): string => `position fen ${fen}`;
+
+export const cmdGo = (movetimeMs: number): string =>
+  `go movetime ${movetimeMs}`;
+
+/**
+ * Parses a `bestmove <move> [ponder <move>]` line into just the move.
+ * Returns `null` for `bestmove (none)` (no legal move) and for any other
+ * (non-bestmove) line, e.g. `info depth ...` search output.
+ */
+export function parseBestMove(line: string): string | null {
+  const match = /^bestmove (\S+)/.exec(line.trim());
+  if (!match) return null;
+  const move = match[1];
+  return move === "(none)" ? null : move;
+}
+
+export function isUciOk(line: string): boolean {
+  return line.trim() === "uciok";
+}
+
+export function isReadyOk(line: string): boolean {
+  return line.trim() === "readyok";
+}

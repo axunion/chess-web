@@ -7,11 +7,19 @@ const FILES = "abcdefgh";
 interface PieceProps {
   piece: BoardPiece;
   interactive: boolean;
+  /** Render black at the bottom, mirroring the flipped Chessboard grid (spec/04 §3). */
+  flipped?: boolean;
 }
 
 export function Piece(props: PieceProps) {
-  const fileIndex = () => FILES.indexOf(props.piece.square[0]);
-  const rankIndex = () => 8 - Number(props.piece.square[1]); // 0 = rank 8 (top row)
+  const fileIndex = () => {
+    const i = FILES.indexOf(props.piece.square[0]);
+    return props.flipped ? 7 - i : i;
+  };
+  const rankIndex = () => {
+    const i = 8 - Number(props.piece.square[1]); // 0 = rank 8 (top row)
+    return props.flipped ? 7 - i : i;
+  };
 
   return (
     <div

@@ -18,12 +18,23 @@ const PIECE_NAMES: Record<BoardPiece["type"], string> = {
 
 interface ChessboardProps {
   state: GameState;
+  /** Render black at the bottom (spec/04 §3: CPU game with the human playing black). */
+  flipped?: boolean;
   onTapSquare?: (square: Square) => void;
   onConfirmPromotion?: (piece: PieceSymbol) => void;
   onCancelPromotion?: () => void;
 }
 
 export function Chessboard(props: ChessboardProps) {
+  // Reversing draw order (rather than a CSS transform) keeps rank/file
+  // labels and piece glyphs upright when flipped (spec/04 §3).
+  const orderedRanks = createMemo(() =>
+    props.flipped ? [...RANKS].reverse() : RANKS,
+  );
+  const orderedFiles = createMemo(() =>
+    props.flipped ? [...FILES].reverse() : FILES,
+  );
+
   const pieceBySquare = createMemo(() => {
     const map = new Map<Square, BoardPiece>();
     for (const piece of props.state.pieces) {
@@ -64,13 +75,13 @@ export function Chessboard(props: ChessboardProps) {
   return (
     <div class={styles.frame}>
       <div class={styles.ranks} aria-hidden="true">
-        <For each={RANKS}>{(rank) => <span>{rank}</span>}</For>
+        <For each={orderedRanks()}>{(rank) => <span>{rank}</span>}</For>
       </div>
       <div class={styles.board}>
         <div class={styles.squares}>
-          <For each={RANKS}>
+          <For each={orderedRanks()}>
             {(rank) => (
-              <For each={FILES}>
+              <For each={orderedFiles()}>
                 {(file) => {
                   const square = `${file}${rank}` as Square;
                   const isLight = (FILES.indexOf(file) + (rank - 1)) % 2 === 1;
@@ -110,13 +121,19 @@ export function Chessboard(props: ChessboardProps) {
         </div>
         <div class={styles.pieceLayer}>
           <For each={props.state.pieces}>
-            {(piece) => <Piece piece={piece} interactive={false} />}
+            {(piece) => (
+              <Piece
+                piece={piece}
+                interactive={false}
+                flipped={props.flipped}
+              />
+            )}
           </For>
         </div>
       </div>
       <div class={styles.corner} aria-hidden="true" />
       <div class={styles.files} aria-hidden="true">
-        <For each={FILES}>{(file) => <span>{file}</span>}</For>
+        <For each={orderedFiles()}>{(file) => <span>{file}</span>}</For>
       </div>
       <PromotionDialog
         pending={props.state.pendingPromotion}

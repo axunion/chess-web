@@ -27,11 +27,12 @@ const PLAYER_COLORS: { value: PlayerColorChoice; label: string }[] = [
   { value: "random", label: "Random" },
 ];
 
-/** Mode/difficulty/color picker for starting a game (spec/05 §7). CPU options are disabled until M4. */
+/** Mode/difficulty/color picker for starting a game (spec/05 §7). */
 export function NewGameDialog(props: NewGameDialogProps) {
   const [mode, setMode] = createSignal<GameMode>("pvp");
   const [difficulty, setDifficulty] = createSignal<Difficulty>("normal");
   const [playerColor, setPlayerColor] = createSignal<PlayerColorChoice>("w");
+  const cpuOptionsDisabled = () => mode() !== "cpu";
 
   function resolveColor(choice: PlayerColorChoice): Color {
     if (choice === "random") return Math.random() < 0.5 ? "w" : "b";
@@ -78,15 +79,12 @@ export function NewGameDialog(props: NewGameDialogProps) {
                   </RadioGroup.ItemControl>
                   <RadioGroup.ItemLabel>Player vs Player</RadioGroup.ItemLabel>
                 </RadioGroup.Item>
-                <RadioGroup.Item value="cpu" disabled class={styles.option}>
+                <RadioGroup.Item value="cpu" class={styles.option}>
                   <RadioGroup.ItemInput />
                   <RadioGroup.ItemControl class={styles.optionControl}>
                     <RadioGroup.ItemIndicator class={styles.optionIndicator} />
                   </RadioGroup.ItemControl>
-                  <RadioGroup.ItemLabel>
-                    vs Computer
-                    <span class={styles.comingSoon}> (coming soon)</span>
-                  </RadioGroup.ItemLabel>
+                  <RadioGroup.ItemLabel>vs Computer</RadioGroup.ItemLabel>
                 </RadioGroup.Item>
               </div>
             </RadioGroup>
@@ -94,7 +92,7 @@ export function NewGameDialog(props: NewGameDialogProps) {
             <RadioGroup
               class={styles.field}
               value={difficulty()}
-              disabled
+              disabled={cpuOptionsDisabled()}
               onChange={(value) => setDifficulty(value as Difficulty)}
             >
               <RadioGroup.Label class={styles.fieldLabel}>
@@ -120,7 +118,7 @@ export function NewGameDialog(props: NewGameDialogProps) {
             <RadioGroup
               class={styles.field}
               value={playerColor()}
-              disabled
+              disabled={cpuOptionsDisabled()}
               onChange={(value) => setPlayerColor(value as PlayerColorChoice)}
             >
               <RadioGroup.Label class={styles.fieldLabel}>

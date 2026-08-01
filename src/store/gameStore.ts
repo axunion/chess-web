@@ -1,4 +1,8 @@
 import { createStore, produce } from "solid-js/store";
+import {
+  createEngineAdapter,
+  type EngineAdapter,
+} from "../engine/engineAdapter";
 import { createChessGame, type MoveResult } from "../game/chessGame";
 import type {
   Color,
@@ -19,6 +23,8 @@ export interface GameStore {
   cancelPromotion(): void;
   resign(color: Color): void;
   requestEngineMove(): void;
+  /** Re-attempts engine initialization/thinking after `engine === "error"` (spec/02 §4). */
+  retryEngine(): void;
 }
 
 const DEFAULT_CONFIG: GameConfig = {
@@ -29,14 +35,28 @@ const DEFAULT_CONFIG: GameConfig = {
 
 /**
  * Owns the single source of reactive game state and every mutation to it
- * (see spec/01-architecture.md §1). Engine-related behavior
- * (`requestEngineMove`) is stubbed as a no-op until M4 wires up Stockfish.
+ * (see spec/01-architecture.md §1). `engineFactory` is injectable so tests
+ * can supply a mock `EngineAdapter` instead of the real Stockfish worker
+ * (spec/02-state-persistence.md §4).
  */
-export function createGameStore(): GameStore {
+export function createGameStore(
+  engineFactory: () => EngineAdapter = () => createEngineAdapter(),
+): GameStore {
   const chessGame = createChessGame();
+  const adapter = engineFactory();
+  // Prevent a leaked Stockfish Worker on every dev-mode hot-reload of this
+  // module while a CPU game is active (spec/01-architecture.md §4).
+  import.meta.hot?.dispose(() => adapter.dispose());
   const initial = chessGame.reset();
   /** PGN of the current game, kept in sync with every applied snapshot (not part of GameState — see spec/02 §2). */
   let currentPgn = initial.pgn;
+  /**
+   * Bumped on every `newGame()`. `requestEngineMove()` closes over the id it
+   * was issued under; a `bestMove()` response (or init failure) that
+   * resolves after the id has moved on belongs to an abandoned game and is
+   * discarded rather than applied (spec/03-engine.md §5).
+   */
+  let gameId = 0;
 
   const [state, setState] = createStore<GameState>({
     config: DEFAULT_CONFIG,
@@ -119,6 +139,9 @@ export function createGameStore(): GameStore {
   }
 
   function newGame(config: GameConfig): void {
+    // Invalidate any in-flight requestEngineMove() from the previous game
+    // before it can apply a stale response (spec/03-engine.md §5).
+    gameId += 1;
     const snapshot = chessGame.reset();
     currentPgn = snapshot.pgn;
     setState({
@@ -135,8 +158,17 @@ export function createGameStore(): GameStore {
       engine: "off",
     });
     persist();
-    if (config.mode === "cpu" && config.playerColor !== snapshot.turn) {
-      requestEngineMove();
+    if (config.mode === "cpu") {
+      if (config.playerColor === snapshot.turn) {
+        // The human moves first — warm up the engine in the background
+        // (spec/05-interaction-flows.md §7 step 3) so the upcoming CPU turn
+        // doesn't have to pay the WASM-load cost when it arrives.
+        warmUpEngine();
+      } else {
+        requestEngineMove();
+      }
+    } else {
+      adapter.dispose();
     }
   }
 
@@ -182,8 +214,9 @@ export function createGameStore(): GameStore {
       engine: "off",
     });
 
-    // Resuming CPU-turn engine thinking on restore is M4 work; the
-    // requestEngineMove() call below is a no-op stub until then.
+    // Resume engine thinking if the restored game is mid-CPU-turn (spec/02
+    // §6): the UI is interactive immediately, engine goes loading -> thinking
+    // in the background.
     if (
       saved.config.mode === "cpu" &&
       state.status.kind === "playing" &&
@@ -257,9 +290,73 @@ export function createGameStore(): GameStore {
     persist(color);
   }
 
+  /** Fire-and-forget engine warm-up (init only, no move request) — spec/05 §7 step 3. */
+  function warmUpEngine(): void {
+    const requestId = gameId;
+    setState("engine", "loading");
+    adapter.init().then(
+      () => {
+        if (requestId !== gameId) return; // a newer game started meanwhile
+        setState("engine", "ready");
+      },
+      (err: unknown) => {
+        if (requestId !== gameId) return;
+        console.warn("gameStore: engine failed to initialize", err);
+        setState("engine", "error");
+      },
+    );
+  }
+
   function requestEngineMove(): void {
-    // Stubbed until M4 (Stockfish integration). CPU mode cannot be selected
-    // from NewGameDialog yet, so this is unreachable in practice for now.
+    const requestId = gameId;
+    const fen = state.fen;
+    const difficulty = state.config.difficulty;
+
+    setState("engine", "loading");
+    adapter
+      .init()
+      .then(() => {
+        if (requestId !== gameId) return undefined; // stale — game moved on
+        setState("engine", "thinking");
+        return adapter.bestMove(fen, difficulty);
+      })
+      .then((uci) => {
+        if (uci === undefined) return; // superseded before bestMove() started
+        if (requestId !== gameId) return; // superseded by a new game entirely
+        // Discard a response that arrives for a game that has since ended
+        // (e.g. resignation mid-think) — but still bring `engine` out of
+        // "thinking" either way (spec/02 §7: thinking -> ready on stale
+        // discard too, not just on an applied move).
+        setState("engine", "ready");
+        if (state.status.kind !== "playing") return;
+        afterMove(chessGame.moveUci(uci));
+      })
+      .catch((err: unknown) => {
+        if (requestId !== gameId) return;
+        if (state.status.kind !== "playing") {
+          // The game ended mid-think (e.g. resignation) before this response
+          // arrived — it's a stale discard, not a real engine failure.
+          setState("engine", "ready");
+          return;
+        }
+        console.warn("gameStore: engine move request failed", err);
+        setState("engine", "error");
+      });
+  }
+
+  function retryEngine(): void {
+    if (state.engine !== "error") return;
+    // Always re-init from scratch; additionally request a move if it's the
+    // CPU's turn to think (spec/02-state-persistence.md §4).
+    if (
+      state.status.kind === "playing" &&
+      state.config.mode === "cpu" &&
+      state.turn !== state.config.playerColor
+    ) {
+      requestEngineMove();
+    } else {
+      warmUpEngine();
+    }
   }
 
   return {
@@ -271,5 +368,6 @@ export function createGameStore(): GameStore {
     cancelPromotion,
     resign,
     requestEngineMove,
+    retryEngine,
   };
 }

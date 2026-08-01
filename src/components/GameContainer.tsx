@@ -29,6 +29,14 @@ export function GameContainer() {
   const restored = store.boot();
   const [newGameDialogOpen, setNewGameDialogOpen] = createSignal(!restored);
 
+  // The board is flipped (black at the bottom) only for a CPU game where the
+  // human plays black (spec/04 §3, spec/05 §7 step 4); PvP is never flipped.
+  const flipped = () =>
+    store.state.config.mode === "cpu" && store.state.config.playerColor === "b";
+  const playerColor = () =>
+    store.state.config.mode === "cpu" ? store.state.config.playerColor : "w";
+  const opponentColor = () => (playerColor() === "w" ? "b" : "w");
+
   function handleStart(config: Parameters<typeof store.newGame>[0]): void {
     store.newGame(config);
     setNewGameDialogOpen(false);
@@ -40,25 +48,34 @@ export function GameContainer() {
         <GameStatusBar
           state={store.state}
           onNewGame={() => setNewGameDialogOpen(true)}
-          onResign={() => store.resign(store.state.turn)}
+          onResign={() =>
+            // CPU games always resign the human's side; PvP resigns whoever's
+            // turn it currently is (spec/05-interaction-flows.md §6).
+            store.resign(
+              store.state.config.mode === "cpu"
+                ? store.state.config.playerColor
+                : store.state.turn,
+            )
+          }
+          onRetryEngine={store.retryEngine}
         />
-        {/* Board is not flipped in this milestone (white always at the
-            bottom — see spec/04 §3; flipping for a CPU-black game is M4),
-            so the opponent's tray is always black's and the player's is
-            always white's. */}
+        {/* Opponent's tray (their captures) is shown above the board,
+            the player's own tray below — regardless of who's playing which
+            color (spec/04 §3). */}
         <CapturedPieces
-          pieces={capturedBy(store.state.history, "b")}
-          color="b"
+          pieces={capturedBy(store.state.history, opponentColor())}
+          color={opponentColor()}
         />
         <Chessboard
           state={store.state}
+          flipped={flipped()}
           onTapSquare={store.tapSquare}
           onConfirmPromotion={store.confirmPromotion}
           onCancelPromotion={store.cancelPromotion}
         />
         <CapturedPieces
-          pieces={capturedBy(store.state.history, "w")}
-          color="w"
+          pieces={capturedBy(store.state.history, playerColor())}
+          color={playerColor()}
         />
         <MoveHistory history={store.state.history} />
       </div>
