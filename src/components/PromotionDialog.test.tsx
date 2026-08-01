@@ -40,6 +40,22 @@ describe("PromotionDialog", () => {
     expect(onSelect).toHaveBeenCalledExactlyOnceWith("q");
   });
 
+  it("reports non-queen piece selections", () => {
+    const onSelect = vi.fn();
+    render(() => (
+      <PromotionDialog
+        pending={{ from: "g7", to: "h8" }}
+        color="w"
+        onSelect={onSelect}
+        onCancel={() => {}}
+      />
+    ));
+
+    fireEvent.click(screen.getByLabelText("Promote to knight"));
+
+    expect(onSelect).toHaveBeenCalledExactlyOnceWith("n");
+  });
+
   it("cancels when the dialog is dismissed via Escape", () => {
     const onCancel = vi.fn();
     render(() => (

@@ -133,6 +133,22 @@ describe("gameStore (PvP)", () => {
       expect(store.state.turn).toBe("b");
     });
 
+    it("confirmPromotion supports rook, bishop, and knight in addition to queen", () => {
+      for (const type of ["r", "b", "n"] as const) {
+        localStorage.clear();
+        const promoStore = createGameStore();
+        playToPromotion(promoStore);
+        promoStore.tapSquare("g7");
+        promoStore.tapSquare("h8");
+
+        promoStore.confirmPromotion(type);
+
+        const promoted = promoStore.state.pieces.find((p) => p.square === "h8");
+        expect(promoted?.type).toBe(type);
+        expect(promoted?.color).toBe("w");
+      }
+    });
+
     it("cancelPromotion clears pendingPromotion and the selection without changing the turn", () => {
       playToPromotion(store);
       store.tapSquare("g7");

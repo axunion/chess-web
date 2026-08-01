@@ -75,6 +75,33 @@ describe("chessGame", () => {
     expect(after.pieces.some((p) => p.square === "h1")).toBe(false);
   });
 
+  it("castling queenside: king and rook land on the correct squares and keep their ids", () => {
+    game.reset();
+    const before = applyMoves(game, [
+      ["d2", "d4"],
+      ["d7", "d5"],
+      ["b1", "c3"],
+      ["b8", "c6"],
+      ["c1", "f4"],
+      ["c8", "f5"],
+      ["d1", "d2"],
+      ["d8", "d7"],
+    ]).snapshot;
+    const kingBefore = before.pieces.find((p) => p.square === "e1");
+    const rookBefore = before.pieces.find((p) => p.square === "a1");
+    expect(kingBefore).toBeDefined();
+    expect(rookBefore).toBeDefined();
+
+    const after = game.move("e1", "c1").snapshot;
+
+    const kingAfter = after.pieces.find((p) => p.square === "c1");
+    const rookAfter = after.pieces.find((p) => p.square === "d1");
+    expect(kingAfter?.id).toBe(kingBefore?.id);
+    expect(rookAfter?.id).toBe(rookBefore?.id);
+    expect(after.pieces.some((p) => p.square === "e1")).toBe(false);
+    expect(after.pieces.some((p) => p.square === "a1")).toBe(false);
+  });
+
   it("en passant removes the captured pawn and records captured: 'p'", () => {
     game.reset();
     applyMoves(game, [
@@ -119,6 +146,31 @@ describe("chessGame", () => {
     expect(promoted?.type).toBe("q");
     expect(promoted?.color).toBe("w");
     expect(promoted?.id).not.toMatch(/^wp-/);
+  });
+
+  it("promotion supports rook, bishop, and knight in addition to queen", () => {
+    const promotionSetup: MoveTuple[] = [
+      ["h2", "h4"],
+      ["g7", "g6"],
+      ["h4", "h5"],
+      ["g8", "f6"],
+      ["h5", "g6"],
+      ["f6", "e4"],
+      ["g6", "g7"],
+      ["e4", "c3"],
+    ];
+
+    for (const type of ["r", "b", "n"] as const) {
+      const promoGame = createChessGame();
+      promoGame.reset();
+      applyMoves(promoGame, promotionSetup);
+
+      const result = promoGame.move("g7", "h8", type);
+
+      const promoted = result.snapshot.pieces.find((p) => p.square === "h8");
+      expect(promoted?.type).toBe(type);
+      expect(promoted?.color).toBe("w");
+    }
   });
 
   it("detects Fool's mate as checkmate with black winning", () => {
