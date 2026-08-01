@@ -1,0 +1,19 @@
+.tray {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.1rem;
+  min-height: 1.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+.piece {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.piece svg {
+  width: 100%;
+  height: 100%;
+  filter: var(--shadow-piece);
+}

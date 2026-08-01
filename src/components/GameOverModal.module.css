@@ -1,0 +1,76 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  background: rgb(43 33 24 / 45%);
+  backdrop-filter: blur(2px);
+}
+
+.overlay[data-expanded] {
+  animation: var(--kf-fade-in) var(--dur-fade) ease-out;
+}
+
+.overlay[data-closed] {
+  animation: var(--kf-fade-out) var(--dur-fade) ease-in;
+}
+
+.positioner {
+  position: fixed;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.content {
+  position: relative;
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  padding: 2rem 1.75rem 1.75rem;
+  min-width: 18rem;
+  text-align: center;
+}
+
+.content[data-expanded] {
+  animation: var(--kf-pop-in) var(--dur-fade) var(--ease-move);
+}
+
+.content[data-closed] {
+  animation: var(--kf-pop-out) var(--dur-fade) var(--ease-move);
+}
+
+.closeButton {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  background: none;
+  color: var(--ink-muted);
+  cursor: pointer;
+}
+
+.title {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-size: 1.3rem;
+}
+
+.newGameButton {
+  padding: 0.6rem 1.5rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--surface-raised);
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  cursor: pointer;
+}

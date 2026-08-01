@@ -1,0 +1,30 @@
+.container {
+  overflow-y: auto;
+  max-height: 12rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  padding: 0.5rem 0.75rem;
+}
+
+.container:focus-visible {
+  outline: 0.15rem solid var(--accent);
+  outline-offset: -0.15rem;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  color: var(--ink);
+}
+
+.moveNumber {
+  width: 2rem;
+  color: var(--ink-muted);
+}
+
+.san {
+  padding: 0.15rem 0.5rem 0.15rem 0;
+}
