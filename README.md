@@ -5,8 +5,6 @@ person on the same device, or against Stockfish at one of four difficulty
 levels. No server or account required — everything runs client-side, and an
 in-progress game survives a reload.
 
-![Screenshot of the board mid-game, showing move highlights](docs/screenshot.png)
-
 ## Features
 
 - Local pass-and-play (two people, one device)
