@@ -18,7 +18,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cmd=$(jq -r '.tool_input.command // empty'); if printf '%s' \"$cmd\" | grep -Eq '(^|[;&|[:space:]])pnpm[[:space:]]+(add|install)[[:space:]]+[A-Za-z@./_-]'; then if printf '%s' \"$cmd\" | grep -Eq '(chess\\.js|stockfish)'; then exit 0; fi; jq -n --arg reason \"spec/07-implementation-plan.md restricts new dependencies to chess.js and stockfish only. This command adds a different package - stop and confirm with the user before proceeding.\" '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"ask\",permissionDecisionReason:$reason}}'; fi",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); if printf '%s' \"$cmd\" | grep -Eq '(^|[;&|[:space:]])pnpm[[:space:]]+(add|install)[[:space:]]+[A-Za-z@./_-]'; then if printf '%s' \"$cmd\" | grep -Eq '(chess\\.js|stockfish)'; then exit 0; fi; jq -n --arg reason \"CLAUDE.md's minimal-dependencies principle restricts new dependencies to chess.js and stockfish only. This command adds a different package - stop and confirm with the user before proceeding.\" '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"ask\",permissionDecisionReason:$reason}}'; fi",
             "timeout": 15
           }
         ]

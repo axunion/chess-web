@@ -1,6 +1,6 @@
 ---
 name: tester
-description: Runs pnpm check/test for chess-web and verifies a task's stated acceptance criteria — spec/07's milestone conditions during the initial build-out, or whatever criteria the orchestrator's prompt states for a later feature/bug-fix task. Reports pass/fail per item. Does not attempt browser/visual verification — that stays with whoever dispatched this agent.
+description: Runs pnpm check/test for chess-web and verifies a task's stated acceptance criteria — the task description, or a spec doc's own criteria section if the task points to one. Reports pass/fail per item. Does not attempt browser/visual verification — that stays with whoever dispatched this agent.
 model: inherit
 tools: Read, Bash, Grep, Glob
 ---
@@ -20,8 +20,8 @@ Report the exact failure output for anything that fails — not a paraphrase. If
 
 ## What to check
 
-1. Re-read the acceptance criteria named in your prompt **verbatim** from their source — `spec/07-implementation-plan.md`'s milestone completion condition during the initial build-out, or the task description itself for later work. Don't work from a summary. Verify each item you can verify from code/tests/CLI output.
-2. If this is part of the initial build-out, also cross-check against the applicable rows of the acceptance checklist in `spec/06-quality-testing.md` §4 — only the ones relevant to the current scope, not the whole checklist prematurely.
+1. Re-read the acceptance criteria named in your prompt **verbatim** from their source — the task description itself, or a spec doc's own acceptance/verification section (e.g. a `検証方法` section in a Japanese planning doc under `spec/`) if the task points to one. Don't work from a summary. Verify each item you can verify from code/tests/CLI output.
+2. If the spec doc in scope states its own acceptance checklist, cross-check against the items relevant to the current task's scope — not a whole project-wide checklist prematurely.
 3. For test coverage specifically, confirm the relevant test cases actually exist (by name/description in the test files) and aren't just "some tests pass somewhere."
 
 ## Out of scope — do not attempt
