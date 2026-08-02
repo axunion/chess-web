@@ -48,12 +48,13 @@ Worker so the UI never blocks while it's thinking.
 
 ## Piece art
 
-The board uses custom hand-drawn Staunton-style piece silhouettes
-(`src/components/pieces/pieceSvg.tsx`), not the Cburnett SVG set — the
-original plan was to use Cburnett (Wikimedia Commons, CC BY-SA 3.0), but the
-implementation environment had no network access to fetch that path data,
-so simple geometric silhouettes were drawn from scratch instead. No Unicode
-chess glyphs are used anywhere in the UI.
+The board uses the Cburnett piece set, originally created by Colin M.L.
+Burnett and distributed under the **GNU GPLv2 or later**. The SVG markup in
+`src/components/pieces/pieceSvg.tsx` is sourced verbatim from
+[lila](https://github.com/lichess-org/lila) (lichess.org's open-source
+repository) at `public/piece/cburnett/{color}{TYPE}.svg`. This applies to
+the piece SVG assets only; it does not affect the license of the rest of
+the codebase. No Unicode chess glyphs are used anywhere in the UI.
 
 ## Scope
 
