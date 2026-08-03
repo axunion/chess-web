@@ -1,4 +1,4 @@
-import { createEffect, For, on } from "solid-js";
+import { createEffect, For, on, Show } from "solid-js";
 import type { HistoryEntry } from "../game/types";
 import styles from "./MoveHistory.module.css";
 
@@ -9,7 +9,9 @@ interface MoveHistoryProps {
 interface MoveRow {
   moveNumber: number;
   white?: string;
+  whiteIndex?: number;
   black?: string;
+  blackIndex?: number;
 }
 
 function toRows(history: HistoryEntry[]): MoveRow[] {
@@ -18,7 +20,9 @@ function toRows(history: HistoryEntry[]): MoveRow[] {
     rows.push({
       moveNumber: i / 2 + 1,
       white: history[i]?.san,
+      whiteIndex: history[i] ? i : undefined,
       black: history[i + 1]?.san,
+      blackIndex: history[i + 1] ? i + 1 : undefined,
     });
   }
   return rows;
@@ -36,6 +40,8 @@ export function MoveHistory(props: MoveHistoryProps) {
     ),
   );
 
+  const lastIndex = () => props.history.length - 1;
+
   return (
     <section
       class={styles.container}
@@ -44,19 +50,44 @@ export function MoveHistory(props: MoveHistoryProps) {
       tabIndex={0}
       aria-label="Move history"
     >
-      <table class={styles.table}>
-        <tbody>
-          <For each={toRows(props.history)}>
-            {(row) => (
-              <tr>
-                <td class={styles.moveNumber}>{row.moveNumber}</td>
-                <td class={styles.san}>{row.white}</td>
-                <td class={styles.san}>{row.black}</td>
-              </tr>
-            )}
-          </For>
-        </tbody>
-      </table>
+      <Show
+        when={props.history.length > 0}
+        fallback={<p class={styles.empty}>No moves yet</p>}
+      >
+        <table class={styles.table}>
+          <tbody>
+            <For each={toRows(props.history)}>
+              {(row) => (
+                <tr>
+                  <td class={styles.moveNumber}>{row.moveNumber}</td>
+                  <td
+                    class={styles.san}
+                    classList={{
+                      [styles.current]: row.whiteIndex === lastIndex(),
+                    }}
+                    aria-current={
+                      row.whiteIndex === lastIndex() ? "true" : undefined
+                    }
+                  >
+                    {row.white}
+                  </td>
+                  <td
+                    class={styles.san}
+                    classList={{
+                      [styles.current]: row.blackIndex === lastIndex(),
+                    }}
+                    aria-current={
+                      row.blackIndex === lastIndex() ? "true" : undefined
+                    }
+                  >
+                    {row.black}
+                  </td>
+                </tr>
+              )}
+            </For>
+          </tbody>
+        </table>
+      </Show>
     </section>
   );
 }

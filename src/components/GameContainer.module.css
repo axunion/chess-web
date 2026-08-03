@@ -7,9 +7,10 @@
 }
 
 /* Children are, in DOM order: GameStatusBar, CapturedPieces(opponent),
-   Chessboard, CapturedPieces(self), MoveHistory. Grid areas below let us
-   reorder them into a board + sidebar layout on desktop without touching
-   the DOM order that the mobile single-column layout already relies on. */
+   Chessboard, CapturedPieces(self), MoveHistory, each wrapped in a named
+   slot div below. Grid areas let us reorder them into a board + sidebar
+   layout on desktop without touching the DOM order that the mobile
+   single-column layout already relies on. */
 .layout {
   display: grid;
   grid-template-areas:
@@ -23,23 +24,23 @@
   max-width: 560px;
 }
 
-.layout > :nth-child(1) {
+.statusSlot {
   grid-area: status;
 }
 
-.layout > :nth-child(2) {
+.opponentSlot {
   grid-area: opponent;
 }
 
-.layout > :nth-child(3) {
+.boardSlot {
   grid-area: board;
 }
 
-.layout > :nth-child(4) {
+.selfSlot {
   grid-area: self;
 }
 
-.layout > :nth-child(5) {
+.historySlot {
   grid-area: history;
 }
 

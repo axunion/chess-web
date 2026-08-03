@@ -3,7 +3,6 @@
   --board-light: #ead9b8; /* maple */
   --board-dark: #9e6b4a; /* walnut */
   --board-frame: #5d4030; /* outer frame */
-  --board-coord: #f7efe0; /* rank/file labels on frame */
 
   /* Feedback overlays (semi-transparent, layered on squares) */
   --hl-selected: rgb(218 165 32 / 55%); /* goldenrod */
@@ -17,6 +16,10 @@
   --ink: #2b2118;
   --ink-muted: #7a6a58;
   --accent: #7c4a2d;
+  --hairline: rgb(
+    43 33 24 /
+    12%
+  ); /* subtle divider/border, in place of drop shadows */
 
   /* Typography */
   --font-display:

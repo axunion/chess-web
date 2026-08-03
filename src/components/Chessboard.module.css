@@ -1,11 +1,4 @@
 .frame {
-  display: grid;
-  grid-template-columns: 1.25rem 1fr;
-  grid-template-rows: 1fr 1.25rem;
-  grid-template-areas:
-    "ranks board"
-    "corner files";
-  gap: 0.35rem;
   width: fit-content;
   margin-inline: auto;
   padding: 0.75rem;
@@ -15,12 +8,14 @@
 }
 
 .board {
-  grid-area: board;
   position: relative;
   aspect-ratio: 1;
   /* Adjusted from spec's min(100vw - 2rem, 100dvh - 14rem, 560px) to also
-     subtract the .frame padding and rank/file coordinate-label gutters. */
-  width: min(100vw - 4.5rem, 100dvh - 16rem, 560px);
+     subtract the .frame padding (0.75rem) and the GameContainer .container
+     padding (1.5rem) on each side — 2 * (0.75rem + 1.5rem) = 4.5rem.
+     Coordinate labels are drawn on-square (see .rankLabel/.fileLabel below),
+     so there's no separate gutter to account for. */
+  width: min(100vw - 4.5rem, 100dvh - 14.5rem, 560px);
 }
 
 .squares {
@@ -100,29 +95,34 @@
   pointer-events: none;
 }
 
-.corner {
-  grid-area: corner;
-}
-
-.ranks,
-.files {
-  display: flex;
-  color: var(--board-coord);
+.rankLabel,
+.fileLabel {
+  position: absolute;
+  z-index: 3;
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.55rem;
+  font-weight: 600;
+  line-height: 1;
   user-select: none;
+  pointer-events: none;
 }
 
-.ranks {
-  grid-area: ranks;
-  flex-direction: column;
-  align-items: center;
-  justify-content: space-around;
+.rankLabel {
+  top: 0.15rem;
+  left: 0.2rem;
 }
 
-.files {
-  grid-area: files;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-around;
+.fileLabel {
+  bottom: 0.15rem;
+  right: 0.2rem;
+}
+
+/* Text color alternates against the square's own background instead of
+   the frame's coord color, since labels now sit directly on the squares. */
+.onLight {
+  color: var(--board-dark);
+}
+
+.onDark {
+  color: var(--board-light);
 }

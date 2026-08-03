@@ -40,6 +40,16 @@ describe("gameStore persistence (spec/02 §5, §6)", () => {
     expect(saved?.resignedBy).toBe("w");
   });
 
+  it("abandonGame() clears the saved game", () => {
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+    expect(readSavedGame()).not.toBeNull();
+
+    store.abandonGame();
+
+    expect(readSavedGame()).toBeNull();
+  });
+
   it("boot() restores an in-progress pvp game from a saved pgn", () => {
     store.tapSquare("e2");
     store.tapSquare("e4");

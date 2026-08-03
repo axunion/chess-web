@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { EngineAdapter } from "../engine/engineAdapter";
 import type { Difficulty } from "../game/types";
+import { STORAGE_KEY } from "../persistence/schema";
 import { saveGame } from "../persistence/storage";
 import { createGameStore } from "./gameStore";
 
@@ -206,6 +207,27 @@ describe("gameStore (CPU)", () => {
       expect(store.state.history.map((e) => e.san)).toEqual(["e4"]); // CPU's reply was not applied
       // engine must not stay stuck at "thinking" after the discard (spec/02 §7).
       expect(store.state.engine).toBe("ready");
+    });
+
+    it("does not resurrect the save when a bestmove response resolves after abandonGame()", async () => {
+      const engine = createControllableEngine();
+      const store = createGameStore(() => engine.adapter);
+      store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "w" });
+      engine.resolveInit();
+      await flushAsync();
+
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      await flushAsync();
+      expect(store.state.engine).toBe("thinking");
+
+      store.abandonGame();
+      // The stale response for the abandoned game now arrives.
+      engine.resolveBestMove("e7e5");
+      await flushAsync();
+
+      expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+      expect(engine.disposeCallCount).toBe(1);
     });
 
     it("resets engine to ready (not error) when a bestMove() rejection arrives after the human resigned", async () => {

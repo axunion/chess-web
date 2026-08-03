@@ -1,5 +1,6 @@
 .container {
   overflow-y: auto;
+  min-height: 4.5rem;
   max-height: 12rem;
   background: var(--surface-raised);
   border-radius: var(--radius);
@@ -12,6 +13,15 @@
   outline-offset: -0.15rem;
 }
 
+.empty {
+  margin: 0;
+  padding: 0.15rem 0;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-style: italic;
+}
+
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -20,11 +30,21 @@
   color: var(--ink);
 }
 
+.table tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
 .moveNumber {
   width: 2rem;
+  padding: 0.15rem 0;
   color: var(--ink-muted);
 }
 
 .san {
   padding: 0.15rem 0.5rem 0.15rem 0;
+}
+
+.current {
+  color: var(--accent);
+  font-weight: 700;
 }

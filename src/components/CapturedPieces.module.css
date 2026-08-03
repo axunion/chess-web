@@ -17,3 +17,11 @@
   height: 100%;
   filter: var(--shadow-piece);
 }
+
+.advantage {
+  margin-left: 0.15rem;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+}

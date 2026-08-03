@@ -7,7 +7,7 @@ import { formatGameResult } from "./gameResultText";
 
 interface GameOverModalProps {
   status: GameStatus;
-  onNewGame: () => void;
+  onReturnToTitle: () => void;
 }
 
 /** Wait for the last move animation to finish before covering the board (spec/05 §6). */
@@ -32,10 +32,10 @@ export function GameOverModal(props: GameOverModalProps) {
   );
   onCleanup(() => clearTimeout(timer));
 
-  function handleNewGame(): void {
-    // Close this modal so it doesn't linger behind NewGameDialog.
+  function handleReturnToTitle(): void {
+    // Close this modal before navigating away so it doesn't linger.
     setOpen(false);
-    props.onNewGame();
+    props.onReturnToTitle();
   }
 
   return (
@@ -52,10 +52,10 @@ export function GameOverModal(props: GameOverModalProps) {
             </Dialog.Title>
             <button
               type="button"
-              class={styles.newGameButton}
-              onClick={handleNewGame}
+              class={styles.returnButton}
+              onClick={handleReturnToTitle}
             >
-              New Game
+              Return to Title
             </button>
           </Dialog.Content>
         </div>

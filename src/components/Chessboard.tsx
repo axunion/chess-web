@@ -74,17 +74,21 @@ export function Chessboard(props: ChessboardProps) {
 
   return (
     <div class={styles.frame}>
-      <div class={styles.ranks} aria-hidden="true">
-        <For each={orderedRanks()}>{(rank) => <span>{rank}</span>}</For>
-      </div>
       <div class={styles.board}>
         <div class={styles.squares}>
           <For each={orderedRanks()}>
-            {(rank) => (
+            {(rank, rankIdx) => (
               <For each={orderedFiles()}>
-                {(file) => {
+                {(file, fileIdx) => {
                   const square = `${file}${rank}` as Square;
                   const isLight = (FILES.indexOf(file) + (rank - 1)) % 2 === 1;
+                  // Coordinate labels sit on the visually left column / bottom
+                  // row, keyed off <For> index (not the rank/file value)
+                  // because flip is done by reversing iteration order rather
+                  // than a CSS transform — indexing by value would put the
+                  // labels on the wrong edge once flipped.
+                  const showRankLabel = fileIdx() === 0;
+                  const showFileLabel = rankIdx() === 7;
                   return (
                     <button
                       type="button"
@@ -112,7 +116,32 @@ export function Chessboard(props: ChessboardProps) {
                         props.state.selected === square || undefined
                       }
                       onClick={() => props.onTapSquare?.(square)}
-                    />
+                    >
+                      {showRankLabel && (
+                        <span
+                          class={styles.rankLabel}
+                          classList={{
+                            [styles.onLight]: isLight,
+                            [styles.onDark]: !isLight,
+                          }}
+                          aria-hidden="true"
+                        >
+                          {rank}
+                        </span>
+                      )}
+                      {showFileLabel && (
+                        <span
+                          class={styles.fileLabel}
+                          classList={{
+                            [styles.onLight]: isLight,
+                            [styles.onDark]: !isLight,
+                          }}
+                          aria-hidden="true"
+                        >
+                          {file}
+                        </span>
+                      )}
+                    </button>
                   );
                 }}
               </For>
@@ -130,10 +159,6 @@ export function Chessboard(props: ChessboardProps) {
             )}
           </For>
         </div>
-      </div>
-      <div class={styles.corner} aria-hidden="true" />
-      <div class={styles.files} aria-hidden="true">
-        <For each={orderedFiles()}>{(file) => <span>{file}</span>}</For>
       </div>
       <PromotionDialog
         pending={props.state.pendingPromotion}

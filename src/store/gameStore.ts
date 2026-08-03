@@ -22,6 +22,8 @@ export interface GameStore {
   confirmPromotion(piece: PieceSymbol): void;
   cancelPromotion(): void;
   resign(color: Color): void;
+  /** Abandons the current game and clears its save, returning to the title screen. */
+  abandonGame(): void;
   requestEngineMove(): void;
   /** Re-attempts engine initialization/thinking after `engine === "error"` (spec/02 §4). */
   retryEngine(): void;
@@ -175,7 +177,7 @@ export function createGameStore(
   /**
    * Restores a saved game on startup (spec/02 §6). Returns `true` when a
    * valid save was found and applied, `false` when there was none or it was
-   * corrupted (in which case the caller should fall back to NewGameDialog).
+   * corrupted (in which case the caller should fall back to the title screen).
    * The already-reset initial state from store creation is left untouched
    * on the `false` path.
    */
@@ -290,6 +292,18 @@ export function createGameStore(
     persist(color);
   }
 
+  /**
+   * Abandons the current game (mid-game quit, or leaving a finished game)
+   * and clears its save so a later boot() can't resurrect it. Bumps `gameId`
+   * first, same as newGame(), so a bestMove() response already in flight
+   * can't silently persist() a new save after the clear (spec/03 §5).
+   */
+  function abandonGame(): void {
+    gameId += 1;
+    adapter.dispose();
+    clearGame();
+  }
+
   /** Fire-and-forget engine warm-up (init only, no move request) — spec/05 §7 step 3. */
   function warmUpEngine(): void {
     const requestId = gameId;
@@ -367,6 +381,7 @@ export function createGameStore(
     confirmPromotion,
     cancelPromotion,
     resign,
+    abandonGame,
     requestEngineMove,
     retryEngine,
   };
