@@ -89,6 +89,10 @@ export function Chessboard(props: ChessboardProps) {
                   // labels on the wrong edge once flipped.
                   const showRankLabel = fileIdx() === 0;
                   const showFileLabel = rankIdx() === 7;
+                  const labelToneClass = {
+                    [styles.onLight]: isLight,
+                    [styles.onDark]: !isLight,
+                  };
                   return (
                     <button
                       type="button"
@@ -120,10 +124,7 @@ export function Chessboard(props: ChessboardProps) {
                       {showRankLabel && (
                         <span
                           class={styles.rankLabel}
-                          classList={{
-                            [styles.onLight]: isLight,
-                            [styles.onDark]: !isLight,
-                          }}
+                          classList={labelToneClass}
                           aria-hidden="true"
                         >
                           {rank}
@@ -132,10 +133,7 @@ export function Chessboard(props: ChessboardProps) {
                       {showFileLabel && (
                         <span
                           class={styles.fileLabel}
-                          classList={{
-                            [styles.onLight]: isLight,
-                            [styles.onDark]: !isLight,
-                          }}
+                          classList={labelToneClass}
                           aria-hidden="true"
                         >
                           {file}

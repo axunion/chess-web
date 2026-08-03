@@ -9,20 +9,21 @@ interface MoveHistoryProps {
 interface MoveRow {
   moveNumber: number;
   white?: string;
-  whiteIndex?: number;
+  whiteIsCurrent: boolean;
   black?: string;
-  blackIndex?: number;
+  blackIsCurrent: boolean;
 }
 
 function toRows(history: HistoryEntry[]): MoveRow[] {
+  const lastIndex = history.length - 1;
   const rows: MoveRow[] = [];
   for (let i = 0; i < history.length; i += 2) {
     rows.push({
       moveNumber: i / 2 + 1,
       white: history[i]?.san,
-      whiteIndex: history[i] ? i : undefined,
+      whiteIsCurrent: i === lastIndex,
       black: history[i + 1]?.san,
-      blackIndex: history[i + 1] ? i + 1 : undefined,
+      blackIsCurrent: i + 1 === lastIndex,
     });
   }
   return rows;
@@ -39,8 +40,6 @@ export function MoveHistory(props: MoveHistoryProps) {
       },
     ),
   );
-
-  const lastIndex = () => props.history.length - 1;
 
   return (
     <section
@@ -62,23 +61,15 @@ export function MoveHistory(props: MoveHistoryProps) {
                   <td class={styles.moveNumber}>{row.moveNumber}</td>
                   <td
                     class={styles.san}
-                    classList={{
-                      [styles.current]: row.whiteIndex === lastIndex(),
-                    }}
-                    aria-current={
-                      row.whiteIndex === lastIndex() ? "true" : undefined
-                    }
+                    classList={{ [styles.current]: row.whiteIsCurrent }}
+                    aria-current={row.whiteIsCurrent ? "true" : undefined}
                   >
                     {row.white}
                   </td>
                   <td
                     class={styles.san}
-                    classList={{
-                      [styles.current]: row.blackIndex === lastIndex(),
-                    }}
-                    aria-current={
-                      row.blackIndex === lastIndex() ? "true" : undefined
-                    }
+                    classList={{ [styles.current]: row.blackIsCurrent }}
+                    aria-current={row.blackIsCurrent ? "true" : undefined}
                   >
                     {row.black}
                   </td>

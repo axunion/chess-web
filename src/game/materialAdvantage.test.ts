@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { BoardPiece } from "../game/types";
 import { materialAdvantage } from "./materialAdvantage";
+import type { BoardPiece } from "./types";
 
 function piece(
   type: BoardPiece["type"],

@@ -13,6 +13,49 @@ interface GameStatusBarProps {
   onRetryEngine: () => void;
 }
 
+interface ConfirmDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  confirmLabel: string;
+  confirmClass: string;
+  onConfirm: () => void;
+}
+
+/** Shared shell for the Resign/Quit confirmation prompts. */
+function ConfirmDialog(props: ConfirmDialogProps) {
+  return (
+    <AlertDialog open={props.open} onOpenChange={props.onOpenChange}>
+      <AlertDialog.Portal>
+        <AlertDialog.Overlay class={styles.overlay} />
+        <div class={styles.positioner}>
+          <AlertDialog.Content class={styles.dialogContent}>
+            <AlertDialog.Title class={styles.dialogTitle}>
+              {props.title}
+            </AlertDialog.Title>
+            <AlertDialog.Description class={styles.dialogDescription}>
+              {props.description}
+            </AlertDialog.Description>
+            <div class={styles.dialogActions}>
+              <AlertDialog.CloseButton class={styles.cancelButton}>
+                Cancel
+              </AlertDialog.CloseButton>
+              <button
+                type="button"
+                class={props.confirmClass}
+                onClick={props.onConfirm}
+              >
+                {props.confirmLabel}
+              </button>
+            </div>
+          </AlertDialog.Content>
+        </div>
+      </AlertDialog.Portal>
+    </AlertDialog>
+  );
+}
+
 export function GameStatusBar(props: GameStatusBarProps) {
   const [resignConfirmOpen, setResignConfirmOpen] = createSignal(false);
   const [quitConfirmOpen, setQuitConfirmOpen] = createSignal(false);
@@ -31,6 +74,11 @@ export function GameStatusBar(props: GameStatusBarProps) {
   const isLoading = () => props.state.engine === "loading";
   const isThinking = () => props.state.engine === "thinking";
   const isEngineError = () => props.state.engine === "error";
+  const spinnerText = () => {
+    if (isLoading()) return "Loading Stockfish…";
+    if (isThinking()) return "Stockfish is thinking…";
+    return null;
+  };
 
   function handleResign(): void {
     setResignConfirmOpen(false);
@@ -81,17 +129,17 @@ export function GameStatusBar(props: GameStatusBarProps) {
           so toggling between "thinking"/"error"/idle never shifts the board below. */}
       <Show when={isCpu()}>
         <div class={styles.notice}>
-          <Show when={isLoading()}>
-            <div class={styles.thinkingBanner} role="status" aria-live="polite">
-              <span class={styles.spinner} aria-hidden="true" />
-              <span>Loading Stockfish…</span>
-            </div>
-          </Show>
-          <Show when={isThinking()}>
-            <div class={styles.thinkingBanner} role="status" aria-live="polite">
-              <span class={styles.spinner} aria-hidden="true" />
-              <span>Stockfish is thinking…</span>
-            </div>
+          <Show when={spinnerText()}>
+            {(text) => (
+              <div
+                class={styles.thinkingBanner}
+                role="status"
+                aria-live="polite"
+              >
+                <span class={styles.spinner} aria-hidden="true" />
+                <span>{text()}</span>
+              </div>
+            )}
           </Show>
           <Show when={isEngineError()}>
             <div class={styles.errorBanner} role="alert">
@@ -110,64 +158,25 @@ export function GameStatusBar(props: GameStatusBarProps) {
         </div>
       </Show>
 
-      <AlertDialog
+      <ConfirmDialog
         open={resignConfirmOpen()}
         onOpenChange={setResignConfirmOpen}
-      >
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay class={styles.overlay} />
-          <div class={styles.positioner}>
-            <AlertDialog.Content class={styles.dialogContent}>
-              <AlertDialog.Title class={styles.dialogTitle}>
-                Resign the game?
-              </AlertDialog.Title>
-              <AlertDialog.Description class={styles.dialogDescription}>
-                This ends the game immediately. This cannot be undone.
-              </AlertDialog.Description>
-              <div class={styles.dialogActions}>
-                <AlertDialog.CloseButton class={styles.cancelButton}>
-                  Cancel
-                </AlertDialog.CloseButton>
-                <button
-                  type="button"
-                  class={styles.confirmResignButton}
-                  onClick={handleResign}
-                >
-                  Resign
-                </button>
-              </div>
-            </AlertDialog.Content>
-          </div>
-        </AlertDialog.Portal>
-      </AlertDialog>
+        title="Resign the game?"
+        description="This ends the game immediately. This cannot be undone."
+        confirmLabel="Resign"
+        confirmClass={styles.confirmResignButton}
+        onConfirm={handleResign}
+      />
 
-      <AlertDialog open={quitConfirmOpen()} onOpenChange={setQuitConfirmOpen}>
-        <AlertDialog.Portal>
-          <AlertDialog.Overlay class={styles.overlay} />
-          <div class={styles.positioner}>
-            <AlertDialog.Content class={styles.dialogContent}>
-              <AlertDialog.Title class={styles.dialogTitle}>
-                Return to the title screen?
-              </AlertDialog.Title>
-              <AlertDialog.Description class={styles.dialogDescription}>
-                The current game will be discarded.
-              </AlertDialog.Description>
-              <div class={styles.dialogActions}>
-                <AlertDialog.CloseButton class={styles.cancelButton}>
-                  Cancel
-                </AlertDialog.CloseButton>
-                <button
-                  type="button"
-                  class={styles.confirmQuitButton}
-                  onClick={handleQuit}
-                >
-                  Quit
-                </button>
-              </div>
-            </AlertDialog.Content>
-          </div>
-        </AlertDialog.Portal>
-      </AlertDialog>
+      <ConfirmDialog
+        open={quitConfirmOpen()}
+        onOpenChange={setQuitConfirmOpen}
+        title="Return to the title screen?"
+        description="The current game will be discarded."
+        confirmLabel="Quit"
+        confirmClass={styles.confirmQuitButton}
+        onConfirm={handleQuit}
+      />
     </div>
   );
 }

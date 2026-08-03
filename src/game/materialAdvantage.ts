@@ -1,4 +1,4 @@
-import type { BoardPiece, Color } from "../game/types";
+import type { BoardPiece, Color } from "./types";
 
 const PIECE_VALUES: Record<BoardPiece["type"], number> = {
   p: 1,

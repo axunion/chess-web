@@ -1,4 +1,5 @@
-import { createSignal, Match, Switch } from "solid-js";
+import { createMemo, createSignal, Match, Switch } from "solid-js";
+import { materialAdvantage } from "../game/materialAdvantage";
 import type { Color, HistoryEntry, PieceSymbol } from "../game/types";
 import { createGameStore } from "../store/gameStore";
 import { CapturedPieces } from "./CapturedPieces";
@@ -7,7 +8,6 @@ import styles from "./GameContainer.module.css";
 import { GameOverModal } from "./GameOverModal";
 import { GameStatusBar } from "./GameStatusBar";
 import { MoveHistory } from "./MoveHistory";
-import { materialAdvantage } from "./materialAdvantage";
 import { TitleScreen } from "./TitleScreen";
 
 type Screen = "title" | "game";
@@ -39,7 +39,13 @@ export function GameContainer() {
   const playerColor = () =>
     store.state.config.mode === "cpu" ? store.state.config.playerColor : "w";
   const opponentColor = () => (playerColor() === "w" ? "b" : "w");
-  const advantage = () => materialAdvantage(store.state.pieces);
+  const advantage = createMemo(() => materialAdvantage(store.state.pieces));
+  const opponentCaptured = createMemo(() =>
+    capturedBy(store.state.history, opponentColor()),
+  );
+  const selfCaptured = createMemo(() =>
+    capturedBy(store.state.history, playerColor()),
+  );
 
   function returnToTitle(): void {
     store.abandonGame();
@@ -80,7 +86,7 @@ export function GameContainer() {
                 color (spec/04 §3). */}
             <div class={styles.opponentSlot}>
               <CapturedPieces
-                pieces={capturedBy(store.state.history, opponentColor())}
+                pieces={opponentCaptured()}
                 color={opponentColor()}
                 advantage={advantage()[opponentColor()]}
               />
@@ -96,7 +102,7 @@ export function GameContainer() {
             </div>
             <div class={styles.selfSlot}>
               <CapturedPieces
-                pieces={capturedBy(store.state.history, playerColor())}
+                pieces={selfCaptured()}
                 color={playerColor()}
                 advantage={advantage()[playerColor()]}
               />
