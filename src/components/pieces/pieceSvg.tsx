@@ -310,37 +310,31 @@ function BlackKing(): JSX.Element {
   );
 }
 
+// Record (not a color/type switch) so a piece type missing from either side
+// is a compile error instead of silently falling through to the other
+// color's shape.
+const PIECES: Record<Color, Record<PieceSymbol, () => JSX.Element>> = {
+  w: {
+    p: WhitePawn,
+    n: WhiteKnight,
+    b: WhiteBishop,
+    r: WhiteRook,
+    q: WhiteQueen,
+    k: WhiteKing,
+  },
+  b: {
+    p: BlackPawn,
+    n: BlackKnight,
+    b: BlackBishop,
+    r: BlackRook,
+    q: BlackQueen,
+    k: BlackKing,
+  },
+};
+
 function renderPiece(type: PieceSymbol, color: Color): JSX.Element {
-  if (color === "w") {
-    switch (type) {
-      case "p":
-        return <WhitePawn />;
-      case "n":
-        return <WhiteKnight />;
-      case "b":
-        return <WhiteBishop />;
-      case "r":
-        return <WhiteRook />;
-      case "q":
-        return <WhiteQueen />;
-      case "k":
-        return <WhiteKing />;
-    }
-  }
-  switch (type) {
-    case "p":
-      return <BlackPawn />;
-    case "n":
-      return <BlackKnight />;
-    case "b":
-      return <BlackBishop />;
-    case "r":
-      return <BlackRook />;
-    case "q":
-      return <BlackQueen />;
-    case "k":
-      return <BlackKing />;
-  }
+  const Shape = PIECES[color][type];
+  return <Shape />;
 }
 
 export function PieceSvg(props: PieceSvgProps): JSX.Element {

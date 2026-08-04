@@ -95,10 +95,14 @@
   pointer-events: none;
 }
 
+/* No z-index here: .squares (the ancestor) already establishes its own
+   stacking context via its own z-index, which caps any z-index set here at
+   that same level relative to .pieceLayer — so a z-index on these labels
+   would never actually take effect against sibling layers. Rely on DOM
+   order within the square instead (labels render after nothing else here). */
 .rankLabel,
 .fileLabel {
   position: absolute;
-  z-index: 3;
   font-family: var(--font-ui);
   font-size: 0.55rem;
   font-weight: 600;

@@ -39,13 +39,13 @@ export function GameContainer() {
   const playerColor = () =>
     store.state.config.mode === "cpu" ? store.state.config.playerColor : "w";
   const opponentColor = () => (playerColor() === "w" ? "b" : "w");
+  // Memoized because each is read twice below (opponent/self trays share the
+  // same computed advantage). capturedBy() below has only one reader each, so
+  // a plain accessor is enough — no memo needed.
   const advantage = createMemo(() => materialAdvantage(store.state.pieces));
-  const opponentCaptured = createMemo(() =>
-    capturedBy(store.state.history, opponentColor()),
-  );
-  const selfCaptured = createMemo(() =>
-    capturedBy(store.state.history, playerColor()),
-  );
+  const opponentCaptured = () =>
+    capturedBy(store.state.history, opponentColor());
+  const selfCaptured = () => capturedBy(store.state.history, playerColor());
 
   function returnToTitle(): void {
     store.abandonGame();

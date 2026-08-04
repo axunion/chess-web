@@ -86,9 +86,11 @@ export function Chessboard(props: ChessboardProps) {
                   // row, keyed off <For> index (not the rank/file value)
                   // because flip is done by reversing iteration order rather
                   // than a CSS transform — indexing by value would put the
-                  // labels on the wrong edge once flipped.
-                  const showRankLabel = fileIdx() === 0;
-                  const showFileLabel = rankIdx() === 7;
+                  // labels on the wrong edge once flipped. Read fileIdx()/
+                  // rankIdx() at each usage site rather than snapshotting them
+                  // into consts here: <For> can reuse a rendered item across a
+                  // reorder and only update its index signal, so a snapshot
+                  // taken once at item-creation time could go stale.
                   const labelToneClass = {
                     [styles.onLight]: isLight,
                     [styles.onDark]: !isLight,
@@ -121,7 +123,7 @@ export function Chessboard(props: ChessboardProps) {
                       }
                       onClick={() => props.onTapSquare?.(square)}
                     >
-                      {showRankLabel && (
+                      {fileIdx() === 0 && (
                         <span
                           class={styles.rankLabel}
                           classList={labelToneClass}
@@ -130,7 +132,7 @@ export function Chessboard(props: ChessboardProps) {
                           {rank}
                         </span>
                       )}
-                      {showFileLabel && (
+                      {rankIdx() === 7 && (
                         <span
                           class={styles.fileLabel}
                           classList={labelToneClass}
