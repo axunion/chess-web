@@ -2,6 +2,7 @@ import { Dialog } from "@kobalte/core/dialog";
 import { X } from "lucide-solid";
 import { createEffect, createSignal, on, onCleanup } from "solid-js";
 import type { GameStatus } from "../game/types";
+import chrome from "./dialogChrome.module.css";
 import styles from "./GameOverModal.module.css";
 import { formatGameResult } from "./gameResultText";
 
@@ -41,8 +42,8 @@ export function GameOverModal(props: GameOverModalProps) {
   return (
     <Dialog open={open()} onOpenChange={setOpen}>
       <Dialog.Portal>
-        <Dialog.Overlay class={styles.overlay} />
-        <div class={styles.positioner}>
+        <Dialog.Overlay class={chrome.overlay} />
+        <div class={chrome.positioner}>
           <Dialog.Content class={styles.content}>
             <Dialog.CloseButton class={styles.closeButton} aria-label="Close">
               <X size={18} />

@@ -1,13 +1,17 @@
 import { createMemo, createSignal, Match, Switch } from "solid-js";
 import { materialAdvantage } from "../game/materialAdvantage";
-import type { Color, HistoryEntry, PieceSymbol } from "../game/types";
+import type {
+  Color,
+  GameConfig,
+  HistoryEntry,
+  PieceSymbol,
+} from "../game/types";
 import { createGameStore } from "../store/gameStore";
 import { CapturedPieces } from "./CapturedPieces";
 import { Chessboard } from "./Chessboard";
 import styles from "./GameContainer.module.css";
 import { GameOverModal } from "./GameOverModal";
 import { GameStatusBar } from "./GameStatusBar";
-import { MoveHistory } from "./MoveHistory";
 import { TitleScreen } from "./TitleScreen";
 
 type Screen = "title" | "game";
@@ -22,6 +26,15 @@ function capturedBy(history: HistoryEntry[], color: Color): PieceSymbol[] {
     .sort(
       (a, b) => CAPTURE_VALUE_ORDER.indexOf(a) - CAPTURE_VALUE_ORDER.indexOf(b),
     );
+}
+
+/** Player-card label for `color`'s tray — by color in pvp, by role in cpu games. */
+function sideLabel(color: Color, config: GameConfig): string {
+  if (config.mode === "pvp") return color === "w" ? "White" : "Black";
+  if (color === config.playerColor) return "You";
+  const difficulty =
+    config.difficulty[0].toUpperCase() + config.difficulty.slice(1);
+  return `Stockfish · ${difficulty}`;
 }
 
 export function GameContainer() {
@@ -46,6 +59,7 @@ export function GameContainer() {
   const opponentCaptured = () =>
     capturedBy(store.state.history, opponentColor());
   const selfCaptured = () => capturedBy(store.state.history, playerColor());
+  const isPlaying = () => store.state.status.kind === "playing";
 
   function returnToTitle(): void {
     store.abandonGame();
@@ -64,6 +78,7 @@ export function GameContainer() {
       </Match>
       <Match when={screen() === "game"}>
         <div class={styles.container}>
+          <div class={styles.decoration} aria-hidden="true" />
           <div class={styles.layout}>
             <div class={styles.statusSlot}>
               <GameStatusBar
@@ -89,6 +104,8 @@ export function GameContainer() {
                 pieces={opponentCaptured()}
                 color={opponentColor()}
                 advantage={advantage()[opponentColor()]}
+                active={isPlaying() && store.state.turn === opponentColor()}
+                label={sideLabel(opponentColor(), store.state.config)}
               />
             </div>
             <div class={styles.boardSlot}>
@@ -105,10 +122,9 @@ export function GameContainer() {
                 pieces={selfCaptured()}
                 color={playerColor()}
                 advantage={advantage()[playerColor()]}
+                active={isPlaying() && store.state.turn === playerColor()}
+                label={sideLabel(playerColor(), store.state.config)}
               />
-            </div>
-            <div class={styles.historySlot}>
-              <MoveHistory history={store.state.history} />
             </div>
           </div>
           <GameOverModal

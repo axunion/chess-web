@@ -1,6 +1,7 @@
 import { Dialog } from "@kobalte/core/dialog";
 import { For } from "solid-js";
 import type { Color, PieceSymbol, Square } from "../game/types";
+import chrome from "./dialogChrome.module.css";
 import styles from "./PromotionDialog.module.css";
 import { PieceSvg } from "./pieces/pieceSvg";
 
@@ -28,8 +29,8 @@ export function PromotionDialog(props: PromotionDialogProps) {
       }}
     >
       <Dialog.Portal>
-        <Dialog.Overlay class={styles.overlay} />
-        <div class={styles.positioner}>
+        <Dialog.Overlay class={chrome.overlay} />
+        <div class={chrome.positioner}>
           <Dialog.Content class={styles.content}>
             <Dialog.Title class={styles.title}>Promote pawn to</Dialog.Title>
             <div class={styles.options}>

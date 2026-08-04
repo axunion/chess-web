@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 1rem 1.25rem;
   background: var(--surface-raised);
   border-radius: var(--radius);
   box-shadow: var(--shadow-panel);
@@ -98,12 +98,10 @@
 
 .statusText {
   color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
   font-weight: 600;
-}
-
-.checkBadge {
-  color: var(--hl-check);
-  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .menuButton {
@@ -127,10 +125,11 @@
 }
 
 .menuContent {
+  z-index: 3;
   display: flex;
   flex-direction: column;
-  min-width: 10rem;
-  padding: 0.35rem;
+  min-width: 13rem;
+  padding: 0.5rem;
   background: var(--surface-raised);
   border-radius: var(--radius);
   box-shadow: var(--shadow-panel);
@@ -146,7 +145,10 @@
 }
 
 .menuItem {
-  padding: 0.5rem 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.85rem;
   border-radius: calc(var(--radius) - 4px);
   color: var(--ink);
   font-size: 0.9rem;
@@ -154,41 +156,34 @@
   outline: none;
 }
 
+.menuItem svg {
+  flex-shrink: 0;
+}
+
 .menuItem[data-highlighted] {
   background: var(--surface);
 }
 
-.overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 3;
-  background: rgb(43 33 24 / 45%);
-  backdrop-filter: blur(2px);
+.menuItemDanger {
+  color: var(--hl-check);
 }
 
-.overlay[data-expanded] {
-  animation: var(--kf-fade-in) var(--dur-fade) ease-out;
+.menuItemDanger[data-highlighted] {
+  background: rgb(178 34 34 / 12%);
 }
 
-.overlay[data-closed] {
-  animation: var(--kf-fade-out) var(--dur-fade) ease-in;
-}
-
-.positioner {
-  position: fixed;
-  inset: 0;
-  z-index: 3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
+.menuSeparator {
+  height: 1px;
+  margin: 0.3rem 0.2rem;
+  border: none;
+  background: var(--hairline);
 }
 
 .dialogContent {
   background: var(--surface-raised);
   border-radius: var(--radius);
   box-shadow: var(--shadow-panel);
-  padding: 1.25rem;
+  padding: 1.5rem;
   max-width: 20rem;
 }
 
@@ -222,6 +217,9 @@
 .cancelButton,
 .confirmResignButton,
 .confirmQuitButton {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.45rem 0.9rem;
   border: 1px solid var(--ink-muted);
   border-radius: var(--radius);

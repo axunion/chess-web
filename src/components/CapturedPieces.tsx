@@ -9,6 +9,33 @@ interface CapturedPiecesProps {
   color: Color;
   /** `color`'s material lead over the opponent; 0 (or negative) shows no badge. */
   advantage: number;
+  /** Whether it's `color`'s turn right now — highlights the tray in place of a text banner. */
+  active: boolean;
+  /** Player-card label, e.g. "White"/"Black" (pvp) or "You"/"Stockfish · Normal" (cpu). */
+  label: string;
+}
+
+interface PieceGroup {
+  type: PieceSymbol;
+  count: number;
+}
+
+// Collapse same-type captures into one icon + a count badge instead of one
+// icon per capture — caps the tray at 5 icons (Q/R/B/N/P) regardless of how
+// many pieces were actually taken, so it can never wrap onto a second line
+// and shift the board below it (props.pieces is already sorted by value, so
+// same-type entries are always adjacent).
+function groupPieces(pieces: PieceSymbol[]): PieceGroup[] {
+  const groups: PieceGroup[] = [];
+  for (const type of pieces) {
+    const last = groups.at(-1);
+    if (last?.type === type) {
+      last.count++;
+    } else {
+      groups.push({ type, count: 1 });
+    }
+  }
+  return groups;
 }
 
 /** Small captured-piece tray for one side (spec/04 §1). */
@@ -18,18 +45,27 @@ export function CapturedPieces(props: CapturedPiecesProps) {
   return (
     <section
       class={styles.tray}
-      aria-label={`Pieces captured by ${props.color === "w" ? "white" : "black"}`}
+      classList={{ [styles.active]: props.active }}
+      aria-label={`${props.label} — captured pieces${props.active ? ", to move" : ""}`}
     >
-      <For each={props.pieces}>
-        {(type) => (
-          <span class={styles.piece}>
-            <PieceSvg type={type} color={opponentColor()} />
-          </span>
-        )}
-      </For>
-      <Show when={props.advantage > 0}>
-        <span class={styles.advantage}>+{props.advantage}</span>
-      </Show>
+      <span class={styles.label}>{props.label}</span>
+      <div class={styles.pieces}>
+        <For each={groupPieces(props.pieces)}>
+          {(group) => (
+            <span class={styles.pieceGroup}>
+              <span class={styles.piece}>
+                <PieceSvg type={group.type} color={opponentColor()} />
+              </span>
+              <Show when={group.count > 1}>
+                <span class={styles.count}>×{group.count}</span>
+              </Show>
+            </span>
+          )}
+        </For>
+        <Show when={props.advantage > 0}>
+          <span class={styles.advantage}>+{props.advantage}</span>
+        </Show>
+      </div>
     </section>
   );
 }

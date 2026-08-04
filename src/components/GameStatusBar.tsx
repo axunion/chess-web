@@ -1,10 +1,12 @@
 import { AlertDialog } from "@kobalte/core/alert-dialog";
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
-import { EllipsisVertical } from "lucide-solid";
-import { createSignal, Show } from "solid-js";
+import { EllipsisVertical, Flag, History, Home } from "lucide-solid";
+import { createSignal, type JSX, Show } from "solid-js";
 import type { GameState } from "../game/types";
+import chrome from "./dialogChrome.module.css";
 import styles from "./GameStatusBar.module.css";
 import { formatGameResult } from "./gameResultText";
+import { MoveHistoryDialog } from "./MoveHistoryDialog";
 
 interface GameStatusBarProps {
   state: GameState;
@@ -19,6 +21,7 @@ interface ConfirmDialogProps {
   title: string;
   description: string;
   confirmLabel: string;
+  confirmIcon: JSX.Element;
   confirmClass: string;
   onConfirm: () => void;
 }
@@ -28,8 +31,8 @@ function ConfirmDialog(props: ConfirmDialogProps) {
   return (
     <AlertDialog open={props.open} onOpenChange={props.onOpenChange}>
       <AlertDialog.Portal>
-        <AlertDialog.Overlay class={styles.overlay} />
-        <div class={styles.positioner}>
+        <AlertDialog.Overlay class={chrome.overlay} />
+        <div class={chrome.positioner}>
           <AlertDialog.Content class={styles.dialogContent}>
             <AlertDialog.Title class={styles.dialogTitle}>
               {props.title}
@@ -46,6 +49,7 @@ function ConfirmDialog(props: ConfirmDialogProps) {
                 class={props.confirmClass}
                 onClick={props.onConfirm}
               >
+                {props.confirmIcon}
                 {props.confirmLabel}
               </button>
             </div>
@@ -59,14 +63,9 @@ function ConfirmDialog(props: ConfirmDialogProps) {
 export function GameStatusBar(props: GameStatusBarProps) {
   const [resignConfirmOpen, setResignConfirmOpen] = createSignal(false);
   const [quitConfirmOpen, setQuitConfirmOpen] = createSignal(false);
+  const [historyOpen, setHistoryOpen] = createSignal(false);
 
   const isPlaying = () => props.state.status.kind === "playing";
-  const isCheck = () =>
-    props.state.status.kind === "playing" && props.state.status.check;
-  const turnText = () =>
-    props.state.turn === "w" ? "White to move" : "Black to move";
-  const statusText = () =>
-    isPlaying() ? turnText() : formatGameResult(props.state.status);
   const isCpu = () => props.state.config.mode === "cpu";
   // "loading" is the one-time engine warm-up, which can happen on the human's
   // own move (spec/05 §7 step 3) — worth distinguishing from "thinking",
@@ -93,9 +92,15 @@ export function GameStatusBar(props: GameStatusBarProps) {
   return (
     <div class={styles.container}>
       <div class={styles.bar}>
+        {/* Whose turn it is shows on the captured-piece trays (see
+            GameContainer), and check shows on the board via the king's
+            square — this bar only speaks up once the game has ended. */}
         <div class={styles.status} role="status" aria-live="polite">
-          <span class={styles.statusText}>{statusText()}</span>
-          {isCheck() && <span class={styles.checkBadge}>Check!</span>}
+          <Show when={!isPlaying()}>
+            <span class={styles.statusText}>
+              {formatGameResult(props.state.status)}
+            </span>
+          </Show>
         </div>
         <DropdownMenu placement="bottom-end">
           <DropdownMenu.Trigger
@@ -106,11 +111,20 @@ export function GameStatusBar(props: GameStatusBarProps) {
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content class={styles.menuContent}>
+              <DropdownMenu.Item
+                class={styles.menuItem}
+                onSelect={() => setHistoryOpen(true)}
+              >
+                <History size={16} />
+                Move History
+              </DropdownMenu.Item>
+              <DropdownMenu.Separator class={styles.menuSeparator} />
               <Show when={isPlaying()}>
                 <DropdownMenu.Item
-                  class={styles.menuItem}
+                  class={`${styles.menuItem} ${styles.menuItemDanger}`}
                   onSelect={() => setResignConfirmOpen(true)}
                 >
+                  <Flag size={16} />
                   Resign
                 </DropdownMenu.Item>
               </Show>
@@ -118,7 +132,8 @@ export function GameStatusBar(props: GameStatusBarProps) {
                 class={styles.menuItem}
                 onSelect={() => setQuitConfirmOpen(true)}
               >
-                Quit to Title
+                <Home size={16} />
+                Return to Title
               </DropdownMenu.Item>
             </DropdownMenu.Content>
           </DropdownMenu.Portal>
@@ -164,6 +179,7 @@ export function GameStatusBar(props: GameStatusBarProps) {
         title="Resign the game?"
         description="This ends the game immediately. This cannot be undone."
         confirmLabel="Resign"
+        confirmIcon={<Flag size={16} />}
         confirmClass={styles.confirmResignButton}
         onConfirm={handleResign}
       />
@@ -173,9 +189,16 @@ export function GameStatusBar(props: GameStatusBarProps) {
         onOpenChange={setQuitConfirmOpen}
         title="Return to the title screen?"
         description="The current game will be discarded."
-        confirmLabel="Quit"
+        confirmLabel="Return to Title"
+        confirmIcon={<Home size={16} />}
         confirmClass={styles.confirmQuitButton}
         onConfirm={handleQuit}
+      />
+
+      <MoveHistoryDialog
+        open={historyOpen()}
+        onOpenChange={setHistoryOpen}
+        history={props.state.history}
       />
     </div>
   );

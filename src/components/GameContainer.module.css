@@ -1,25 +1,43 @@
 .container {
+  position: relative;
   display: flex;
   min-height: 100svh;
   align-items: center;
   justify-content: center;
-  padding: 1.5rem;
+  overflow: hidden;
+  padding: 2rem;
+}
+
+/* Same faint checkerboard texture as TitleScreen.module.css .board — ties the
+   game screen's atmosphere to the title screen instead of sitting on bare
+   --surface. Duplicated rather than shared since it's only these two uses. */
+.decoration {
+  position: absolute;
+  inset: -10%;
+  background-image: repeating-conic-gradient(
+    var(--board-light) 0% 25%,
+    var(--board-dark) 0% 50%
+  );
+  background-size: 5rem 5rem;
+  opacity: 0.05;
+  mask-image: radial-gradient(circle at 50% 45%, black, transparent 75%);
 }
 
 /* Children are, in DOM order: GameStatusBar, CapturedPieces(opponent),
-   Chessboard, CapturedPieces(self), MoveHistory, each wrapped in a named
-   slot div below. Grid areas let us reorder them into a board + sidebar
-   layout on desktop without touching the DOM order that the mobile
-   single-column layout already relies on. */
+   Chessboard, CapturedPieces(self), each wrapped in a named slot div below.
+   Grid areas let us reorder them into a board + sidebar layout on desktop
+   without touching the DOM order that the mobile single-column layout
+   already relies on. position/z-index lift it above .decoration. */
 .layout {
+  position: relative;
+  z-index: 1;
   display: grid;
   grid-template-areas:
     "status"
     "opponent"
     "board"
-    "self"
-    "history";
-  gap: 0.75rem;
+    "self";
+  gap: 1.25rem;
   width: 100%;
   max-width: 560px;
 }
@@ -40,18 +58,13 @@
   grid-area: self;
 }
 
-.historySlot {
-  grid-area: history;
-}
-
 @media (min-width: 64rem) {
   .layout {
-    grid-template-columns: auto 20rem;
+    grid-template-columns: auto 22rem;
     grid-template-areas:
       "board status"
       "board opponent"
-      "board self"
-      "board history";
+      "board self";
     align-items: start;
     max-width: none;
   }

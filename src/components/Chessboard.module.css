@@ -10,12 +10,26 @@
 .board {
   position: relative;
   aspect-ratio: 1;
-  /* Adjusted from spec's min(100vw - 2rem, 100dvh - 14rem, 560px) to also
-     subtract the .frame padding (0.75rem) and the GameContainer .container
-     padding (1.5rem) on each side — 2 * (0.75rem + 1.5rem) = 4.5rem.
-     Coordinate labels are drawn on-square (see .rankLabel/.fileLabel below),
-     so there's no separate gutter to account for. */
-  width: min(100vw - 4.5rem, 100dvh - 14.5rem, 560px);
+  /* Sized so the whole mobile column (status bar + trays + gaps + this
+     square board) always fits within one viewport height, with zero page
+     scroll, in both pvp and cpu games. Coordinate labels are drawn on-square
+     (see .rankLabel/.fileLabel below), so there's no separate gutter to add.
+
+     vw term — GameContainer .container padding (2rem) + this .frame's
+     padding (0.75rem), doubled for both sides: 2 * (2rem + 0.75rem) = 5.5rem.
+
+     dvh term — every non-board row stacked above/below it on mobile
+     (GameContainer.module.css .layout), itemized, cpu-mode worst case since
+     that's the taller of the two modes (extra engine-status .notice row):
+       .container padding (top+bottom)         2 * 2rem     = 4rem
+       .layout gap, 3 gaps between 4 rows       3 * 1.25rem  = 3.75rem
+       GameStatusBar .bar (padding + button)    2rem + 2.25rem = 4.25rem
+       GameStatusBar cpu .notice (gap + row)    0.5rem + 2.25rem = 2.75rem
+       CapturedPieces tray x2                   2 * 2.5rem   = 5rem
+                                                 total          19.75rem
+     Rounded up to 20rem for rounding/line-height slack. Any change to the
+     padding/gap/min-height of those rows must update this constant too. */
+  width: min(100vw - 5.5rem, 100dvh - 20rem, 560px);
 }
 
 .squares {

@@ -38,14 +38,29 @@ describe("GameStatusBar", () => {
 
     openMenu();
     expect(screen.getByText("Resign")).not.toBeNull();
-    expect(screen.getByText("Quit to Title")).not.toBeNull();
+    expect(screen.getByText("Return to Title")).not.toBeNull();
 
     store.resign("w");
 
-    // Resign no longer applies once the game is over, but Quit is still the
-    // only way back to the title screen.
+    // Resign no longer applies once the game is over, but Return to Title is
+    // still the only way back to the title screen.
     expect(screen.queryByText("Resign")).toBeNull();
-    expect(screen.getByText("Quit to Title")).not.toBeNull();
+    expect(screen.getByText("Return to Title")).not.toBeNull();
+  });
+
+  it("also offers Move History in the game menu regardless of game state", () => {
+    const store = createGameStore();
+    render(() => (
+      <GameStatusBar
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onRetryEngine={vi.fn()}
+      />
+    ));
+
+    openMenu();
+    expect(screen.getByText("Move History")).not.toBeNull();
   });
 
   it("asks for confirmation before resigning, and only calls onResign once confirmed", () => {
@@ -82,11 +97,13 @@ describe("GameStatusBar", () => {
     ));
 
     openMenu();
-    selectMenuItem("Quit to Title");
+    selectMenuItem("Return to Title");
     expect(screen.getByText("Return to the title screen?")).not.toBeNull();
     expect(onQuit).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByText("Quit"));
+    fireEvent.click(
+      screen.getAllByText("Return to Title").at(-1) as HTMLElement,
+    );
     expect(onQuit).toHaveBeenCalledTimes(1);
   });
 
@@ -103,7 +120,7 @@ describe("GameStatusBar", () => {
     ));
 
     openMenu();
-    selectMenuItem("Quit to Title");
+    selectMenuItem("Return to Title");
     fireEvent.click(screen.getByText("Cancel"));
     expect(onQuit).not.toHaveBeenCalled();
   });
