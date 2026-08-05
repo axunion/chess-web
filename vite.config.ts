@@ -13,6 +13,7 @@ export default defineConfig({
   test: {
     environment: "happy-dom",
     globals: false,
+    include: ["src/**/*.{test,spec}.{ts,tsx}"],
   },
   resolve: {
     conditions: ["development", "browser"],

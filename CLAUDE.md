@@ -47,9 +47,15 @@ identifiers, and diagram labels inside those docs remain in English as usual.
 - **Structural correctness** — game state transitions, persistence round-trips, engine
   adapter parsing — belongs in `pnpm test` (vitest) and `pnpm check` (biome + tsc),
   run automatically as part of verification.
+- **Real-browser flows** — behavior vitest's happy-dom can't stand in for (a
+  localStorage save surviving an actual page reload, a full move played through real
+  DOM events) — belongs in `pnpm test:e2e` (Playwright, `e2e/`). First run needs
+  `pnpm exec playwright install chromium` once to fetch the browser binary. Not run
+  automatically (no CI, not wired into lefthook); run it by hand when touching
+  persistence, the board's move flow, or the engine integration.
 - **Visual/subjective judgment** — board layout, piece rendering, dialog polish, "does
-  this look right" — no script can reliably judge this. Verify by running `pnpm dev`
-  and looking at it; don't try to automate this away with browser scripting.
+  this look right" — no script can reliably judge this, including Playwright. Verify
+  by running `pnpm dev` and looking at it.
 - Persist a new regression test only for a durable, worth-protecting flow — ideally one
   with evidence it broke before — not for a one-off "let me verify this specific
   change" check.
