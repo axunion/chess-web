@@ -44,6 +44,46 @@ identifiers, and diagram labels inside those docs remain in English as usual.
 - If the project has no test setup, ask briefly: introduce one, or verify another way?
 - Test observable outcomes and edge cases, not implementation details.
 - Each test is fully self-contained; no shared mutable state between tests.
+- **Structural correctness** — game state transitions, persistence round-trips, engine
+  adapter parsing — belongs in `pnpm test` (vitest) and `pnpm check` (biome + tsc),
+  run automatically as part of verification.
+- **Visual/subjective judgment** — board layout, piece rendering, dialog polish, "does
+  this look right" — no script can reliably judge this. Verify by running `pnpm dev`
+  and looking at it; don't try to automate this away with browser scripting.
+- Persist a new regression test only for a durable, worth-protecting flow — ideally one
+  with evidence it broke before — not for a one-off "let me verify this specific
+  change" check.
+
+## Subagents
+
+Four specialized subagents live in `.claude/agents/`: `researcher`, `implementer`,
+`reviewer`, `tester`. They're generic — reusable across tasks, not tied to any one
+feature — and can be dispatched directly, or chained via the `/feature-loop` skill
+(`.claude/skills/feature-loop/`).
+
+- **Trivial** (one-line fixes, typos, config tweaks): implement directly, no agents.
+- **Non-trivial but contained** (a self-contained change in one area): implement
+  directly — optionally preceded by a standalone `researcher` pass if the change leans
+  on an unfamiliar chess.js/stockfish/@kobalte/core API or an established convention
+  worth confirming first — then run `reviewer` and `tester` in parallel automatically,
+  without asking first. Both are read-only/test-only, so the cost of running them is
+  low and they exist specifically to catch the blind spot of reviewing your own work.
+- **Large, ambiguous, or high-risk** (spans many files, touches the layer-boundary risk
+  area below substantially, or the task itself is genuinely ambiguous): prefer
+  `/feature-loop`, which chains research → implement → review + test and iterates on
+  findings. Always confirm with the user before invoking it — it spawns four agents
+  with real time/token cost.
+
+**Risk area — the layer boundary.** `src/game`, `src/engine`, `src/persistence` hold
+this project's core rules (chess move/state logic, the Stockfish UCI adapter,
+localStorage persistence) and are easy to get subtly wrong. Permanent rule, enforced
+by the `reviewer` agent on every change:
+- `src/components/` never imports chess.js, the engine adapter, or `localStorage`
+  directly — only through `src/store` actions.
+- `src/game/`, `src/engine/`, `src/persistence/` never import `solid-js`, and never
+  import from each other — only `src/game/types.ts` may be shared across them.
+- `src/game/chessGame.ts` never returns or exports a raw chess.js `Chess` instance —
+  only plain serializable snapshots.
 
 ## Commits
 
