@@ -43,43 +43,51 @@ describe("Chessboard", () => {
     expect(e2.getAttribute("aria-pressed")).not.toBe("true");
   });
 
-  it("draws in-square coordinate labels on the visually left column and bottom row", () => {
+  it("draws coordinate labels in a gutter outside the checkered grid, not on the squares", () => {
     const store = createGameStore();
-    render(() => (
+    const { container } = render(() => (
       <Chessboard state={store.state} onTapSquare={store.tapSquare} />
     ));
 
-    // a8: visually top-left — rank label only.
+    const rankLabels = Array.from(
+      container.querySelectorAll(
+        '[class*="rankGutter"] [class*="gutterLabel"]',
+      ),
+    ).map((el) => el.textContent);
+    expect(rankLabels).toEqual(["8", "7", "6", "5", "4", "3", "2", "1"]);
+
+    const fileLabels = Array.from(
+      container.querySelectorAll(
+        '[class*="fileGutter"] [class*="gutterLabel"]',
+      ),
+    ).map((el) => el.textContent);
+    expect(fileLabels).toEqual(["a", "b", "c", "d", "e", "f", "g", "h"]);
+
+    // Squares themselves carry no label text — just the accessible name.
     expect(screen.getByLabelText("a8, black rook").textContent?.trim()).toBe(
-      "8",
+      "",
     );
-    // h1: visually bottom-right — file label only.
-    expect(screen.getByLabelText("h1, white rook").textContent?.trim()).toBe(
-      "h",
-    );
-    // a1: visually bottom-left corner — both labels.
-    const a1Text = screen.getByLabelText("a1, white rook").textContent ?? "";
-    expect(a1Text).toContain("1");
-    expect(a1Text).toContain("a");
-    // Interior square — no labels.
     expect(screen.getByLabelText("e4, empty").textContent?.trim()).toBe("");
   });
 
-  it("keeps coordinate labels on the visually left/bottom edge when flipped", () => {
+  it("reverses the gutter label order when flipped, without moving them to a different edge", () => {
     const store = createGameStore();
-    render(() => (
+    const { container } = render(() => (
       <Chessboard state={store.state} onTapSquare={store.tapSquare} flipped />
     ));
 
-    // Flipped: h-file is drawn leftmost, rank 1 is drawn topmost.
-    expect(screen.getByLabelText("h1, white rook").textContent?.trim()).toBe(
-      "1",
-    );
-    expect(screen.getByLabelText("a8, black rook").textContent?.trim()).toBe(
-      "a",
-    );
-    const h8Text = screen.getByLabelText("h8, black rook").textContent ?? "";
-    expect(h8Text).toContain("8");
-    expect(h8Text).toContain("h");
+    const rankLabels = Array.from(
+      container.querySelectorAll(
+        '[class*="rankGutter"] [class*="gutterLabel"]',
+      ),
+    ).map((el) => el.textContent);
+    expect(rankLabels).toEqual(["1", "2", "3", "4", "5", "6", "7", "8"]);
+
+    const fileLabels = Array.from(
+      container.querySelectorAll(
+        '[class*="fileGutter"] [class*="gutterLabel"]',
+      ),
+    ).map((el) => el.textContent);
+    expect(fileLabels).toEqual(["h", "g", "f", "e", "d", "c", "b", "a"]);
   });
 });

@@ -1,8 +1,7 @@
 import { cleanup, fireEvent, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { GameState } from "../game/types";
 import { createGameStore } from "../store/gameStore";
-import { GameStatusBar } from "./GameStatusBar";
+import { GameMenu } from "./GameMenu";
 
 afterEach(cleanup);
 
@@ -16,23 +15,16 @@ function selectMenuItem(text: string): void {
   fireEvent.pointerUp(screen.getByText(text), { button: 0 });
 }
 
-function cpuState(engine: GameState["engine"]): GameState {
-  return {
-    ...createGameStore().state,
-    config: { mode: "cpu", difficulty: "normal", playerColor: "w" },
-    engine,
-  };
-}
-
-describe("GameStatusBar", () => {
+describe("GameMenu", () => {
   it("tucks Resign/Quit inside the game menu, hiding Resign once the game is over", () => {
     const store = createGameStore();
     render(() => (
-      <GameStatusBar
+      <GameMenu
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
       />
     ));
 
@@ -48,30 +40,33 @@ describe("GameStatusBar", () => {
     expect(screen.getByText("Return to Title")).not.toBeNull();
   });
 
-  it("also offers Move History in the game menu regardless of game state", () => {
+  it("also offers Move History and Flip Board in the game menu regardless of game state", () => {
     const store = createGameStore();
     render(() => (
-      <GameStatusBar
+      <GameMenu
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
       />
     ));
 
     openMenu();
     expect(screen.getByText("Move History")).not.toBeNull();
+    expect(screen.getByText("Flip Board")).not.toBeNull();
   });
 
   it("asks for confirmation before resigning, and only calls onResign once confirmed", () => {
     const onResign = vi.fn();
     const store = createGameStore();
     render(() => (
-      <GameStatusBar
+      <GameMenu
         state={store.state}
         onQuit={vi.fn()}
         onResign={onResign}
-        onRetryEngine={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
       />
     ));
 
@@ -88,11 +83,12 @@ describe("GameStatusBar", () => {
     const onQuit = vi.fn();
     const store = createGameStore();
     render(() => (
-      <GameStatusBar
+      <GameMenu
         state={store.state}
         onQuit={onQuit}
         onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
       />
     ));
 
@@ -111,11 +107,12 @@ describe("GameStatusBar", () => {
     const onQuit = vi.fn();
     const store = createGameStore();
     render(() => (
-      <GameStatusBar
+      <GameMenu
         state={store.state}
         onQuit={onQuit}
         onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
       />
     ));
 
@@ -125,59 +122,61 @@ describe("GameStatusBar", () => {
     expect(onQuit).not.toHaveBeenCalled();
   });
 
-  it("reserves the notice row for the whole cpu game, not just while thinking/erroring", () => {
-    const { unmount } = render(() => (
-      <GameStatusBar
-        state={cpuState("ready")}
-        onQuit={vi.fn()}
-        onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
-      />
-    ));
-    // Idle (engine ready, nothing to report): the row is reserved but empty.
-    expect(screen.queryByText("Loading Stockfish…")).toBeNull();
-    expect(screen.queryByText("Stockfish is thinking…")).toBeNull();
-    expect(screen.queryByText(/Engine error/)).toBeNull();
-    unmount();
-
-    render(() => (
-      <GameStatusBar
-        state={cpuState("thinking")}
-        onQuit={vi.fn()}
-        onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
-      />
-    ));
-    expect(screen.getByText("Stockfish is thinking…")).not.toBeNull();
-  });
-
-  it("distinguishes the one-time warm-up from the CPU actually thinking", () => {
-    // "loading" also covers warm-up on the human's own move (spec/05 §7 step
-    // 3) — it must not claim the CPU is "thinking" while it's the human's turn.
-    render(() => (
-      <GameStatusBar
-        state={cpuState("loading")}
-        onQuit={vi.fn()}
-        onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
-      />
-    ));
-    expect(screen.getByText("Loading Stockfish…")).not.toBeNull();
-    expect(screen.queryByText("Stockfish is thinking…")).toBeNull();
-  });
-
-  it("never reserves the notice row in a pvp game", () => {
+  it("calls onFlip directly, without a confirmation dialog", () => {
+    const onFlip = vi.fn();
     const store = createGameStore();
     render(() => (
-      <GameStatusBar
+      <GameMenu
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onRetryEngine={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={onFlip}
       />
     ));
 
-    expect(screen.queryByText("Stockfish is thinking…")).toBeNull();
-    expect(screen.queryByText(/Engine error/)).toBeNull();
+    openMenu();
+    selectMenuItem("Flip Board");
+    expect(onFlip).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+
+  it("asks for confirmation before starting a new game, even while still playing", () => {
+    const onNewGame = vi.fn();
+    const store = createGameStore();
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={onNewGame}
+        onFlip={vi.fn()}
+      />
+    ));
+
+    openMenu();
+    selectMenuItem("New Game");
+    expect(screen.getByText("Start a new game?")).not.toBeNull();
+    expect(onNewGame).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getAllByText("New Game").at(-1) as HTMLElement);
+    expect(onNewGame).toHaveBeenCalledTimes(1);
+  });
+
+  it("offers New Game even after the game is over", () => {
+    const store = createGameStore();
+    store.resign("w");
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
+      />
+    ));
+
+    openMenu();
+    expect(screen.getByText("New Game")).not.toBeNull();
   });
 });

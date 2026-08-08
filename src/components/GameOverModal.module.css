@@ -38,13 +38,23 @@
   font-size: 1.3rem;
 }
 
-.returnButton {
+.actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Primary action — playing again is now the expected default next move. */
+.rematchButton {
   padding: 0.6rem 1.5rem;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--accent);
-  color: var(--surface-raised);
   font-family: var(--font-ui);
   font-size: 1rem;
-  cursor: pointer;
+}
+
+/* Secondary action. */
+.returnButton {
+  padding: 0.6rem 1.5rem;
+  font-family: var(--font-ui);
+  font-size: 1rem;
 }

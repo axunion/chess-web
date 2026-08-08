@@ -1,24 +1,38 @@
 :root {
-  /* Board — walnut & maple */
-  --board-light: #ead9b8; /* maple */
-  --board-dark: #9e6b4a; /* walnut */
-  --board-frame: #5d4030; /* outer frame */
+  /* Board — walnut & maple, richer/more saturated for the dark stage */
+  /* Grounded on the board's own light wood tone (not --surface/--surface-raised)
+     — black piece glyphs have no fill color of their own (default black + black
+     stroke), so anywhere they sit off the board needs this same light backing,
+     or they vanish against the dark salon panels (see PlayerCard.module.css
+     .piece, PromotionDialog.module.css .option). */
+  --board-light: #dfc38a; /* maple */
+  --board-dark: #8b5a37; /* walnut */
+  --board-frame: #55392a; /* outer frame, espresso walnut */
 
   /* Feedback overlays (semi-transparent, layered on squares) */
-  --hl-selected: rgb(218 165 32 / 55%); /* goldenrod */
-  --hl-legal-dot: rgb(60 40 20 / 35%);
-  --hl-last-move: rgb(205 180 90 / 40%);
-  --hl-check: rgb(178 34 34 / 55%); /* firebrick on king square */
+  --hl-selected: rgb(224 184 51 / 55%);
+  --hl-last-move: rgb(180 140 60 / 32%);
+  --hl-check: rgb(196 42 42 / 58%); /* board overlay only, on king square */
+  --hl-legal-on-light: rgb(30 20 10 / 55%); /* legal dot/ring on maple */
+  --hl-legal-on-dark: rgb(255 244 214 / 60%); /* legal dot/ring on walnut */
 
-  /* Surface & text */
-  --surface: #f4ede1; /* parchment background */
-  --surface-raised: #fffdf7;
-  --ink: #2b2118;
-  --ink-muted: #7a6a58;
-  --accent: #7c4a2d;
+  /* Surface & text — dark salon stage */
+  --surface: #1a1712;
+  --surface-raised: #241e17;
+  --ink: #ede4d6;
+  --ink-muted: #a89684;
+  /* RGB channels, exposed separately so alpha-blended washes/glows can
+     reference the same color without retyping it (e.g. rgb(var(--accent-rgb) / 60%)). */
+  --accent-rgb: 201 162 39;
+  --danger-rgb: 239 93 99;
+  --accent: rgb(var(--accent-rgb)); /* brass/gold */
+  --danger: rgb(
+    var(--danger-rgb)
+  ); /* solid text/border/fill, distinct from --hl-check */
+  --focus-ring-board: #100c08; /* --accent fails contrast on board wood */
   --hairline: rgb(
-    43 33 24 /
-    12%
+    230 218 196 /
+    10%
   ); /* subtle divider/border, in place of drop shadows */
 
   /* Typography */
@@ -28,16 +42,25 @@
 
   /* Shape & elevation */
   --radius: 10px;
-  --shadow-piece: drop-shadow(0 1px 1px rgb(0 0 0 / 35%))
-    drop-shadow(0 3px 4px rgb(0 0 0 / 20%));
-  --shadow-panel: 0 2px 12px rgb(43 33 24 / 12%);
+  --shadow-piece: drop-shadow(0 1px 1px rgb(0 0 0 / 45%))
+    drop-shadow(0 4px 6px rgb(0 0 0 / 35%))
+    drop-shadow(0 0 3px rgb(255 244 214 / 18%));
+  --shadow-panel:
+    inset 0 1px 0 rgb(255 244 214 / 6%), 0 8px 24px rgb(0 0 0 / 45%);
   --shadow-frame:
-    0 10px 28px rgb(43 33 24 / 30%), 0 2px 6px rgb(43 33 24 / 20%),
-    inset 0 1px 0 rgb(255 255 255 / 6%);
+    0 0 0 1px rgb(var(--accent-rgb) / 25%), 0 20px 45px rgb(0 0 0 / 55%),
+    inset 0 1px 0 rgb(255 244 214 / 10%);
+  /* Signature spotlit-centerpiece bleed — board frame only */
+  --shadow-glow:
+    0 0 70px 14px rgb(var(--accent-rgb) / 14%),
+    0 0 140px 50px rgb(var(--accent-rgb) / 6%);
 
   /* Motion */
   --dur-move: 160ms;
   --dur-fade: 120ms;
+  /* One leg (rotate-out or rotate-in) of the board's flip animation — see
+     Chessboard.tsx, whose FLIP_HALF_MS timer must stay in sync with this. */
+  --dur-flip: 240ms;
   --ease-move: cubic-bezier(0.2, 0.8, 0.3, 1);
 }
 
@@ -45,6 +68,7 @@
   :root {
     --dur-move: 0ms;
     --dur-fade: 0ms;
+    --dur-flip: 0ms;
   }
 }
 

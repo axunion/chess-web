@@ -1,13 +1,13 @@
 import { cleanup, render, screen } from "@solidjs/testing-library";
 import { afterEach, describe, expect, it } from "vitest";
-import { CapturedPieces } from "./CapturedPieces";
+import { PlayerCard } from "./PlayerCard";
 
 afterEach(cleanup);
 
-describe("CapturedPieces", () => {
+describe("PlayerCard", () => {
   it("renders no advantage badge when advantage is 0", () => {
     render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={["p"]}
         color="w"
         advantage={0}
@@ -20,7 +20,7 @@ describe("CapturedPieces", () => {
 
   it("renders a +N badge when the side is ahead on material", () => {
     render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={["q"]}
         color="w"
         advantage={3}
@@ -33,7 +33,7 @@ describe("CapturedPieces", () => {
 
   it("collapses repeated captures of the same type into one icon + a count badge", () => {
     const { container } = render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={["p", "p", "p"]}
         color="w"
         advantage={0}
@@ -48,7 +48,7 @@ describe("CapturedPieces", () => {
 
   it("shows no count badge for a type captured only once", () => {
     render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={["n"]}
         color="w"
         advantage={0}
@@ -61,7 +61,7 @@ describe("CapturedPieces", () => {
 
   it("keeps distinct types as separate groups, each with its own count", () => {
     const { container } = render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={["q", "p", "p"]}
         color="w"
         advantage={0}
@@ -76,7 +76,7 @@ describe("CapturedPieces", () => {
 
   it("shows the player-card label as visible text", () => {
     render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={[]}
         color="b"
         advantage={0}
@@ -89,7 +89,7 @@ describe("CapturedPieces", () => {
 
   it("mentions being to move in its accessible label when active", () => {
     render(() => (
-      <CapturedPieces
+      <PlayerCard
         pieces={[]}
         color="w"
         advantage={0}
@@ -100,5 +100,19 @@ describe("CapturedPieces", () => {
     expect(
       screen.getByLabelText("White — captured pieces, to move"),
     ).not.toBeNull();
+  });
+
+  it("renders a header accessory at the end of the header row", () => {
+    render(() => (
+      <PlayerCard
+        pieces={[]}
+        color="w"
+        advantage={0}
+        active={false}
+        label="White"
+        headerAccessory={<button type="button">Menu</button>}
+      />
+    ));
+    expect(screen.getByText("Menu")).not.toBeNull();
   });
 });

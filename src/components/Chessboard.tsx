@@ -1,4 +1,11 @@
-import { createMemo, For } from "solid-js";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  on,
+  onCleanup,
+} from "solid-js";
 import type { BoardPiece, GameState, PieceSymbol, Square } from "../game/types";
 import styles from "./Chessboard.module.css";
 import { Piece } from "./Piece";
@@ -6,6 +13,16 @@ import { PromotionDialog } from "./PromotionDialog";
 
 const FILES = ["a", "b", "c", "d", "e", "f", "g", "h"] as const;
 const RANKS = [8, 7, 6, 5, 4, 3, 2, 1] as const;
+
+// Must stay in sync with --dur-flip in theme/tokens.css — this is how long
+// the rotate-out leg takes before the board is edge-on (rotateX(90deg)) and
+// the underlying orientation gets swapped while it's visually hidden by
+// perspective foreshortening.
+const FLIP_HALF_MS = 240;
+
+const reducedMotionQuery = window.matchMedia(
+  "(prefers-reduced-motion: reduce)",
+);
 
 const PIECE_NAMES: Record<BoardPiece["type"], string> = {
   p: "pawn",
@@ -26,13 +43,70 @@ interface ChessboardProps {
 }
 
 export function Chessboard(props: ChessboardProps) {
+  // The orientation actually drawn — decoupled from props.flipped so a
+  // toggle can play out as a rotateX card flip (see .frame.flipping in
+  // Chessboard.module.css) instead of every piece instantly sliding to its
+  // point-symmetric opposite square, which read as the board collapsing
+  // into its own center. displayFlipped only jumps to the new value at the
+  // rotate-out leg's midpoint, while the board is edge-on and invisible.
+  const [displayFlipped, setDisplayFlipped] = createSignal(!!props.flipped);
+  const [flipping, setFlipping] = createSignal(false);
+  // Stays true for the whole flip (both the rotate-out and rotate-in legs),
+  // not just the rotate-out leg like `flipping` — freezes each Piece's own
+  // translate transition (see Piece.tsx's `frozen` prop) so the mid-flip
+  // position swap below never plays out as an independent slide once the
+  // board starts rotating back into view.
+  const [piecesFrozen, setPiecesFrozen] = createSignal(false);
+  let outTimer: ReturnType<typeof setTimeout> | undefined;
+  let settleTimer: ReturnType<typeof setTimeout> | undefined;
+
+  // Re-entrant so a target arriving mid-animation (props.flipped toggled
+  // twice in quick succession) cancels the in-flight leg and retargets
+  // instead of being silently dropped — checking `target === displayFlipped()`
+  // alone isn't enough mid-flight, since displayFlipped hasn't swapped yet.
+  function goTo(target: boolean, animate: boolean): void {
+    if (target === displayFlipped() && !flipping() && !piecesFrozen()) return;
+    clearTimeout(outTimer);
+    clearTimeout(settleTimer);
+    if (!animate) {
+      setDisplayFlipped(target);
+      setFlipping(false);
+      setPiecesFrozen(false);
+      return;
+    }
+    setPiecesFrozen(true);
+    setFlipping(true);
+    outTimer = setTimeout(() => {
+      setDisplayFlipped(target);
+      setFlipping(false);
+      // Keep pieces frozen through the rotate-in leg too — the board isn't
+      // fully edge-on for that whole leg, only at its exact start.
+      settleTimer = setTimeout(() => setPiecesFrozen(false), FLIP_HALF_MS);
+    }, FLIP_HALF_MS);
+  }
+
+  createEffect(
+    on(
+      () => props.flipped,
+      (next) => {
+        goTo(!!next, !reducedMotionQuery.matches);
+      },
+      { defer: true },
+    ),
+  );
+  onCleanup(() => {
+    clearTimeout(outTimer);
+    clearTimeout(settleTimer);
+  });
+
   // Reversing draw order (rather than a CSS transform) keeps rank/file
-  // labels and piece glyphs upright when flipped (spec/04 §3).
+  // labels and piece glyphs upright once the flip animation settles
+  // (spec/04 §3).
   const orderedRanks = createMemo(() =>
-    props.flipped ? [...RANKS].reverse() : RANKS,
+    displayFlipped() ? [...RANKS].reverse() : RANKS,
   );
   const orderedFiles = createMemo(() =>
-    props.flipped ? [...FILES].reverse() : FILES,
+    displayFlipped() ? [...FILES].reverse() : FILES,
   );
 
   const pieceBySquare = createMemo(() => {
@@ -73,28 +147,15 @@ export function Chessboard(props: ChessboardProps) {
   }
 
   return (
-    <div class={styles.frame}>
+    <div class={styles.frame} classList={{ [styles.flipping]: flipping() }}>
       <div class={styles.board}>
         <div class={styles.squares}>
           <For each={orderedRanks()}>
-            {(rank, rankIdx) => (
+            {(rank) => (
               <For each={orderedFiles()}>
-                {(file, fileIdx) => {
+                {(file) => {
                   const square = `${file}${rank}` as Square;
                   const isLight = (FILES.indexOf(file) + (rank - 1)) % 2 === 1;
-                  // Coordinate labels sit on the visually left column / bottom
-                  // row, keyed off <For> index (not the rank/file value)
-                  // because flip is done by reversing iteration order rather
-                  // than a CSS transform — indexing by value would put the
-                  // labels on the wrong edge once flipped. Read fileIdx()/
-                  // rankIdx() at each usage site rather than snapshotting them
-                  // into consts here: <For> can reuse a rendered item across a
-                  // reorder and only update its index signal, so a snapshot
-                  // taken once at item-creation time could go stale.
-                  const labelToneClass = {
-                    [styles.onLight]: isLight,
-                    [styles.onDark]: !isLight,
-                  };
                   return (
                     <button
                       type="button"
@@ -122,26 +183,7 @@ export function Chessboard(props: ChessboardProps) {
                         props.state.selected === square || undefined
                       }
                       onClick={() => props.onTapSquare?.(square)}
-                    >
-                      {fileIdx() === 0 && (
-                        <span
-                          class={styles.rankLabel}
-                          classList={labelToneClass}
-                          aria-hidden="true"
-                        >
-                          {rank}
-                        </span>
-                      )}
-                      {rankIdx() === 7 && (
-                        <span
-                          class={styles.fileLabel}
-                          classList={labelToneClass}
-                          aria-hidden="true"
-                        >
-                          {file}
-                        </span>
-                      )}
-                    </button>
+                    />
                   );
                 }}
               </For>
@@ -154,11 +196,22 @@ export function Chessboard(props: ChessboardProps) {
               <Piece
                 piece={piece}
                 interactive={false}
-                flipped={props.flipped}
+                flipped={displayFlipped()}
+                frozen={piecesFrozen()}
               />
             )}
           </For>
         </div>
+      </div>
+      <div class={styles.rankGutter} aria-hidden="true">
+        <For each={orderedRanks()}>
+          {(rank) => <span class={styles.gutterLabel}>{rank}</span>}
+        </For>
+      </div>
+      <div class={styles.fileGutter} aria-hidden="true">
+        <For each={orderedFiles()}>
+          {(file) => <span class={styles.gutterLabel}>{file}</span>}
+        </For>
       </div>
       <PromotionDialog
         pending={props.state.pendingPromotion}

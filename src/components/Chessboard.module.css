@@ -1,35 +1,88 @@
+/* Flip is a literal top-to-bottom card flip (rotateX, hinged on the
+   horizontal axis), not the pieces sliding to new squares — see
+   Chessboard.tsx's two-phase animation, which swaps the underlying
+   orientation at the rotate-out leg's midpoint, while the board is edge-on
+   (rotateX(90deg)) and therefore visually hidden by perspective
+   foreshortening, then rotates back to flat. transform-style stays the
+   default "flat" (not preserve-3d) so squares/pieces/labels all rotate
+   together as one rigid plane, not as independently-placed 3D layers. */
+/* --frame-padding is the same thin brass border this frame always had —
+   coordinate labels below are drawn directly inside it (see .rankGutter/
+   .fileGutter), not in a second gutter layered on top of it. A custom
+   property (not a bare padding value duplicated in three places) so
+   .rankGutter/.fileGutter can share the exact number .frame itself pads by,
+   instead of it silently drifting out of sync. */
 .frame {
+  --frame-padding: 0.75rem;
+  position: relative;
   width: fit-content;
   margin-inline: auto;
-  padding: 0.75rem;
+  padding: var(--frame-padding);
   background: var(--board-frame);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-frame);
+  box-shadow: var(--shadow-frame), var(--shadow-glow);
+  transform: perspective(1400px) rotateX(0deg);
+  transition: transform var(--dur-flip) var(--ease-move);
+}
+
+.frame.flipping {
+  transform: perspective(1400px) rotateX(90deg);
 }
 
 .board {
   position: relative;
   aspect-ratio: 1;
-  /* Sized so the whole mobile column (status bar + trays + gaps + this
-     square board) always fits within one viewport height, with zero page
-     scroll, in both pvp and cpu games. Coordinate labels are drawn on-square
-     (see .rankLabel/.fileLabel below), so there's no separate gutter to add.
+  /* Sized so the whole mobile column (player cards + gaps + this square
+     board) always fits within one viewport height, with zero page scroll,
+     in both pvp and cpu games.
 
      vw term — GameContainer .container padding (2rem) + this .frame's
      padding (0.75rem), doubled for both sides: 2 * (2rem + 0.75rem) = 5.5rem.
+     Unchanged by the player-card recomposition.
 
-     dvh term — every non-board row stacked above/below it on mobile
-     (GameContainer.module.css .layout), itemized, cpu-mode worst case since
-     that's the taller of the two modes (extra engine-status .notice row):
-       .container padding (top+bottom)         2 * 2rem     = 4rem
-       .layout gap, 3 gaps between 4 rows       3 * 1.25rem  = 3.75rem
-       GameStatusBar .bar (padding + button)    2rem + 2.25rem = 4.25rem
-       GameStatusBar cpu .notice (gap + row)    0.5rem + 2.25rem = 2.75rem
-       CapturedPieces tray x2                   2 * 2.5rem   = 5rem
-                                                 total          19.75rem
-     Rounded up to 20rem for rounding/line-height slack. Any change to the
-     padding/gap/min-height of those rows must update this constant too. */
-  width: min(100vw - 5.5rem, 100dvh - 20rem, 560px);
+     dvh term — every non-board row stacked above/below it on mobile. The old
+     separate status bar row and cpu-notice row are both gone (menu moved
+     inline into the self card's header, engine status into the opponent
+     card's header), but each player card now carries its own panel padding
+     plus a header row that didn't exist before:
+       .container padding (top+bottom)              2 * 2rem       = 4rem
+       .layout gap, 2 gaps between 3 rows            2 * 1.25rem    = 2.5rem
+       PlayerCard x2, each:
+         card padding (top+bottom)                   0.75rem * 2   = 1.5rem
+         header row (min-height)                                   = 2rem
+         row gap (header <-> captures)                             = 0.5rem
+         captures row (min-height)                                 = 1.5rem
+         -> 5.5rem per card, x2                                    = 11rem
+                                                       total          17.5rem
+     Rounded up to 18rem for rounding/line-height slack. This is an ESTIMATE —
+     verify empirically via a 375px-viewport screenshot in the worst-case
+     cpu-thinking state, and adjust if the board is clipped or there's
+     residual scroll. Any change to PlayerCard's .header/.captures
+     min-heights must update this constant too. */
+  width: min(100vw - 5.5rem, 100dvh - 18rem, 560px);
+}
+
+/* Desktop has no zero-scroll mobile constraint to honor and a sidebar
+   instead of stacked rows, so the board can grow well past the mobile cap —
+   sized to use the room actually available next to GameContainer's sidebar
+   rather than staying mobile-sized on a big screen.
+
+   vw term — GameContainer .container padding (2 * 2rem = 4rem) + this
+   .frame's padding (2 * 0.75rem = 1.5rem) + the sidebar column
+   (GameContainer.module.css .layout grid-template-columns: 22rem) + the
+   grid's column gap between board and sidebar (1.25rem):
+     4rem + 1.5rem + 22rem + 1.25rem = 28.75rem
+
+   dvh term — same .container/.frame padding as above, no card-row height to
+   add since PlayerCard's desktop rows now cluster next to the board instead
+   of stacking beyond it: 4rem + 1.5rem = 5.5rem
+
+   760px is a hard cap so the board doesn't balloon on very large/tall
+   monitors — matches typical desktop chess-app board sizes. */
+@media (min-width: 64rem) {
+  .board {
+    width: min(100vw - 28.75rem, 100dvh - 5.5rem, 760px);
+  }
 }
 
 .squares {
@@ -55,18 +108,26 @@
    corners), which would otherwise clip the browser's default outline on
    edge squares — use an inset ring instead so keyboard focus stays visible
    on every square. */
+/* --accent (brass) fails contrast against both wood tones, so the board uses
+   its own near-black focus ring instead of the app-wide accent color. */
 .square:focus-visible {
   outline: none;
-  box-shadow: inset 0 0 0 0.2rem var(--accent);
+  box-shadow: inset 0 0 0 0.2rem var(--focus-ring-board);
 }
 
 /* When a legal-capture square receives keyboard focus, layer the focus ring
    on top of the capture ring instead of letting the higher-specificity
    :focus-visible box-shadow silently replace it — both cues stay visible. */
-.square.legalCapture:focus-visible {
+.square.legalCapture.light:focus-visible {
   box-shadow:
-    inset 0 0 0 0.2rem var(--accent),
-    inset 0 0 0 0.4rem var(--hl-legal-dot);
+    inset 0 0 0 0.2rem var(--focus-ring-board),
+    inset 0 0 0 0.4rem var(--hl-legal-on-light);
+}
+
+.square.legalCapture.dark:focus-visible {
+  box-shadow:
+    inset 0 0 0 0.2rem var(--focus-ring-board),
+    inset 0 0 0 0.4rem var(--hl-legal-on-dark);
 }
 
 .light {
@@ -95,11 +156,22 @@
   z-index: 1;
   inset: 35%;
   border-radius: 50%;
-  background: var(--hl-legal-dot);
 }
 
-.legalCapture {
-  box-shadow: inset 0 0 0 0.3rem var(--hl-legal-dot);
+.legalEmpty.light::after {
+  background: var(--hl-legal-on-light);
+}
+
+.legalEmpty.dark::after {
+  background: var(--hl-legal-on-dark);
+}
+
+.legalCapture.light {
+  box-shadow: inset 0 0 0 0.3rem var(--hl-legal-on-light);
+}
+
+.legalCapture.dark {
+  box-shadow: inset 0 0 0 0.3rem var(--hl-legal-on-dark);
 }
 
 .pieceLayer {
@@ -109,38 +181,47 @@
   pointer-events: none;
 }
 
-/* No z-index here: .squares (the ancestor) already establishes its own
-   stacking context via its own z-index, which caps any z-index set here at
-   that same level relative to .pieceLayer — so a z-index on these labels
-   would never actually take effect against sibling layers. Rely on DOM
-   order within the square instead (labels render after nothing else here). */
-.rankLabel,
-.fileLabel {
+/* Coordinate labels live inside .frame's own existing padding strip (see
+   --frame-padding above) — siblings of .board, not children of it, and
+   positioned relative to .frame — always on the visually left/bottom edges
+   regardless of flip (the *values* shown reorder with the rest of the
+   board; which edge shows them does not, so flipping never jumps labels
+   from one side to the other). top/bottom/left/right at --frame-padding
+   line these up exactly with .board's own edges, since that's precisely
+   where .board's content starts inside .frame's padding; width/height at
+   --frame-padding fills the same strip .frame already reserves, so no new
+   space is added and the frame's border reads exactly as thick as before. */
+.rankGutter {
   position: absolute;
-  font-family: var(--font-ui);
-  font-size: 0.55rem;
-  font-weight: 600;
-  line-height: 1;
-  user-select: none;
+  top: var(--frame-padding);
+  bottom: var(--frame-padding);
+  left: 0;
+  width: var(--frame-padding);
+  display: flex;
+  flex-direction: column;
   pointer-events: none;
 }
 
-.rankLabel {
-  top: 0.15rem;
-  left: 0.2rem;
+.fileGutter {
+  position: absolute;
+  left: var(--frame-padding);
+  right: var(--frame-padding);
+  bottom: 0;
+  height: var(--frame-padding);
+  display: flex;
+  flex-direction: row;
+  pointer-events: none;
 }
 
-.fileLabel {
-  bottom: 0.15rem;
-  right: 0.2rem;
-}
-
-/* Text color alternates against the square's own background instead of
-   the frame's coord color, since labels now sit directly on the squares. */
-.onLight {
-  color: var(--board-dark);
-}
-
-.onDark {
+.gutterLabel {
+  flex: 1 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: var(--board-light);
+  font-family: var(--font-ui);
+  font-size: 0.6rem;
+  font-weight: 600;
+  line-height: 1;
+  user-select: none;
 }

@@ -34,7 +34,7 @@
   padding: 0.4rem;
   border: 1px solid var(--ink-muted);
   border-radius: var(--radius);
-  background: var(--surface);
+  background: var(--board-light);
   cursor: pointer;
 }
 

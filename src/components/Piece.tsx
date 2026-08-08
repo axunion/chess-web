@@ -9,6 +9,10 @@ interface PieceProps {
   interactive: boolean;
   /** Render black at the bottom, mirroring the flipped Chessboard grid (spec/04 §3). */
   flipped?: boolean;
+  /** Suppress the translate transition — set while the board's own flip
+      animation is running, so the mid-flip position swap (see Chessboard.tsx)
+      never plays out as its own separate slide alongside the board's rotate. */
+  frozen?: boolean;
 }
 
 export function Piece(props: PieceProps) {
@@ -24,7 +28,10 @@ export function Piece(props: PieceProps) {
   return (
     <div
       class={styles.piece}
-      classList={{ [styles.interactive]: props.interactive }}
+      classList={{
+        [styles.interactive]: props.interactive,
+        [styles.frozen]: props.frozen,
+      }}
       style={{ translate: `${fileIndex() * 100}% ${rankIndex() * 100}%` }}
       aria-hidden="true"
     >

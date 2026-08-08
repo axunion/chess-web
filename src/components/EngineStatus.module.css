@@ -1,0 +1,84 @@
+.thinking,
+.error {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.thinking {
+  color: var(--ink-muted);
+}
+
+.thinkingText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+}
+
+.spinner {
+  width: 0.8rem;
+  height: 0.8rem;
+  flex-shrink: 0;
+  border: 2px solid var(--ink-muted);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinner {
+    animation: none;
+  }
+}
+
+.error {
+  justify-content: flex-end;
+}
+
+.errorText {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--danger);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+}
+
+.retryButton {
+  flex-shrink: 0;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--danger);
+  border-radius: calc(var(--radius) - 6px);
+  background: var(--surface);
+  color: var(--danger);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+/* Matches PlayerCard's desktop header enlargement. */
+@media (min-width: 64rem) {
+  .thinkingText,
+  .errorText {
+    font-size: 0.9rem;
+  }
+
+  .spinner {
+    width: 0.95rem;
+    height: 0.95rem;
+  }
+
+  .retryButton {
+    padding: 0.25rem 0.65rem;
+    font-size: 0.8rem;
+  }
+}

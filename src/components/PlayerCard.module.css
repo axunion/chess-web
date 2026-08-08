@@ -1,0 +1,151 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0.9rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+}
+
+/* Fixed min-height, identical on both cards — this is what keeps the two
+   cards the same total height so the board centers between them. Must fit
+   the tallest header-row content on either card (self card's menu trigger,
+   or opponent card's inline engine-status text/spinner/retry button). Keep
+   both cards' header min-height in sync if either accessory's height
+   changes, or the board goes visually off-center again. */
+.header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 2rem;
+}
+
+.dot {
+  flex-shrink: 0;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--ink-muted);
+  transition: background-color var(--dur-fade) var(--ease-move);
+}
+
+/* Replaces the old whole-tray --hl-last-move wash — quieter, and the glow
+   stays a faint echo so it doesn't compete with the board's own glow. */
+.dotActive {
+  background: var(--accent);
+  box-shadow: 0 0 0.3rem rgb(var(--accent-rgb) / 60%);
+}
+
+.label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  transition: color var(--dur-fade) var(--ease-move);
+}
+
+.labelActive {
+  color: var(--ink);
+}
+
+/* Its own scroll container (not the whole card) so the header stays put and
+   pinned even if enough piece types are captured to need scrolling. Always
+   mounted, even with nothing captured — giving it real card chrome (see
+   .card above) is what reads as intentional, not hiding this row. */
+.captures {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 1.5rem;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.pieceGroup {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.05rem;
+}
+
+.piece {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--board-light);
+}
+
+.piece svg {
+  width: 100%;
+  height: 100%;
+  filter: var(--shadow-piece);
+}
+
+.count {
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.advantage {
+  flex-shrink: 0;
+  margin-left: 0.15rem;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+/* Desktop sidebar cards sit beside a much larger board (GameContainer's
+   22rem column vs. the board's own size), and pin to the board's top/bottom
+   edges rather than stacking together — at the same size as mobile they
+   read as an afterthought next to that much bigger neighbor. Scale up in
+   step with the extra room, not just the padding, so it reads as one
+   proportionate card rather than a small one with a wide margin. */
+@media (min-width: 64rem) {
+  .card {
+    gap: 0.65rem;
+    padding: 1.25rem 1.5rem;
+  }
+
+  .header {
+    min-height: 2.5rem;
+  }
+
+  .dot {
+    width: 0.65rem;
+    height: 0.65rem;
+  }
+
+  .label {
+    font-size: 0.95rem;
+  }
+
+  .captures {
+    gap: 0.5rem;
+    min-height: 1.85rem;
+  }
+
+  .piece {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .count {
+    font-size: 0.85rem;
+  }
+
+  .advantage {
+    font-size: 0.95rem;
+  }
+}

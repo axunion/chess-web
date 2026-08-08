@@ -10,9 +10,10 @@ const DRAW_REASON_TEXT: Record<
 };
 
 /**
- * Formats the end-of-game result banner shown by both GameStatusBar and
- * GameOverModal (wording table: spec/04-components-styling.md §7). Callers
- * should only invoke this once `status.kind !== "playing"`.
+ * Formats the end-of-game result banner shown by both GameContainer's
+ * sr-only live region and GameOverModal (wording table:
+ * spec/04-components-styling.md §7). Callers should only invoke this once
+ * `status.kind !== "playing"`.
  */
 export function formatGameResult(status: GameStatus): string {
   switch (status.kind) {

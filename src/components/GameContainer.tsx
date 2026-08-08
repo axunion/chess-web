@@ -1,4 +1,4 @@
-import { createMemo, createSignal, Match, Switch } from "solid-js";
+import { createMemo, createSignal, Match, Show, Switch } from "solid-js";
 import { materialAdvantage } from "../game/materialAdvantage";
 import type {
   Color,
@@ -7,11 +7,13 @@ import type {
   PieceSymbol,
 } from "../game/types";
 import { createGameStore } from "../store/gameStore";
-import { CapturedPieces } from "./CapturedPieces";
 import { Chessboard } from "./Chessboard";
+import { EngineStatus } from "./EngineStatus";
 import styles from "./GameContainer.module.css";
+import { GameMenu } from "./GameMenu";
 import { GameOverModal } from "./GameOverModal";
-import { GameStatusBar } from "./GameStatusBar";
+import { formatGameResult } from "./gameResultText";
+import { PlayerCard } from "./PlayerCard";
 import { TitleScreen } from "./TitleScreen";
 
 type Screen = "title" | "game";
@@ -47,8 +49,14 @@ export function GameContainer() {
 
   // The board is flipped (black at the bottom) only for a CPU game where the
   // human plays black (spec/04 §3, spec/05 §7 step 4); PvP is never flipped.
-  const flipped = () =>
+  const autoFlipped = () =>
     store.state.config.mode === "cpu" && store.state.config.playerColor === "b";
+  // Manual override from the game menu, XOR'd with the automatic default —
+  // a view preference only, not persisted (resets on reload, same as
+  // `screen`), and deliberately not reset by newGame()/Rematch so a manual
+  // flip stays sticky through a rematch in the same session.
+  const [manualFlipOverride, setManualFlipOverride] = createSignal(false);
+  const flipped = () => autoFlipped() !== manualFlipOverride();
   const playerColor = () =>
     store.state.config.mode === "cpu" ? store.state.config.playerColor : "w";
   const opponentColor = () => (playerColor() === "w" ? "b" : "w");
@@ -66,6 +74,14 @@ export function GameContainer() {
     setScreen("title");
   }
 
+  function toggleFlip(): void {
+    setManualFlipOverride((v) => !v);
+  }
+
+  function restartGame(): void {
+    store.newGame(store.state.config);
+  }
+
   return (
     <Switch>
       <Match when={screen() === "title"}>
@@ -79,33 +95,32 @@ export function GameContainer() {
       <Match when={screen() === "game"}>
         <div class={styles.container}>
           <div class={styles.decoration} aria-hidden="true" />
+          {/* Announces the final result immediately (ahead of GameOverModal's
+              300ms-delayed popup) — distinct from EngineStatus's own
+              role="status"/role="alert" spans, which announce mid-game
+              engine state, not the final outcome. */}
+          <div class={styles.srOnly} role="status" aria-live="polite">
+            <Show when={!isPlaying()}>
+              {formatGameResult(store.state.status)}
+            </Show>
+          </div>
           <div class={styles.layout}>
-            <div class={styles.statusSlot}>
-              <GameStatusBar
-                state={store.state}
-                onQuit={returnToTitle}
-                onResign={() =>
-                  // CPU games always resign the human's side; PvP resigns whoever's
-                  // turn it currently is (spec/05-interaction-flows.md §6).
-                  store.resign(
-                    store.state.config.mode === "cpu"
-                      ? store.state.config.playerColor
-                      : store.state.turn,
-                  )
-                }
-                onRetryEngine={store.retryEngine}
-              />
-            </div>
-            {/* Opponent's tray (their captures) is shown above the board,
-                the player's own tray below — regardless of who's playing which
+            {/* Opponent's card (their captures) is shown above the board,
+                the player's own card below — regardless of who's playing which
                 color (spec/04 §3). */}
             <div class={styles.opponentSlot}>
-              <CapturedPieces
+              <PlayerCard
                 pieces={opponentCaptured()}
                 color={opponentColor()}
                 advantage={advantage()[opponentColor()]}
                 active={isPlaying() && store.state.turn === opponentColor()}
                 label={sideLabel(opponentColor(), store.state.config)}
+                headerAccessory={
+                  <EngineStatus
+                    engine={store.state.engine}
+                    onRetry={store.retryEngine}
+                  />
+                }
               />
             </div>
             <div class={styles.boardSlot}>
@@ -118,18 +133,36 @@ export function GameContainer() {
               />
             </div>
             <div class={styles.selfSlot}>
-              <CapturedPieces
+              <PlayerCard
                 pieces={selfCaptured()}
                 color={playerColor()}
                 advantage={advantage()[playerColor()]}
                 active={isPlaying() && store.state.turn === playerColor()}
                 label={sideLabel(playerColor(), store.state.config)}
+                headerAccessory={
+                  <GameMenu
+                    state={store.state}
+                    onQuit={returnToTitle}
+                    onResign={() =>
+                      // CPU games always resign the human's side; PvP resigns whoever's
+                      // turn it currently is (spec/05-interaction-flows.md §6).
+                      store.resign(
+                        store.state.config.mode === "cpu"
+                          ? store.state.config.playerColor
+                          : store.state.turn,
+                      )
+                    }
+                    onNewGame={restartGame}
+                    onFlip={toggleFlip}
+                  />
+                }
               />
             </div>
           </div>
           <GameOverModal
             status={store.state.status}
             onReturnToTitle={returnToTitle}
+            onRematch={restartGame}
           />
         </div>
       </Match>

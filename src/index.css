@@ -1,7 +1,7 @@
 @import "./theme/tokens.css";
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   font-family: var(--font-ui);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;

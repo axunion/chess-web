@@ -9,6 +9,7 @@ import { formatGameResult } from "./gameResultText";
 interface GameOverModalProps {
   status: GameStatus;
   onReturnToTitle: () => void;
+  onRematch: () => void;
 }
 
 /** Wait for the last move animation to finish before covering the board (spec/05 §6). */
@@ -39,6 +40,13 @@ export function GameOverModal(props: GameOverModalProps) {
     props.onReturnToTitle();
   }
 
+  function handleRematch(): void {
+    // Close before restarting — status flips back to "playing" on the next
+    // effect run anyway, but this avoids a visible close-flash.
+    setOpen(false);
+    props.onRematch();
+  }
+
   return (
     <Dialog open={open()} onOpenChange={setOpen}>
       <Dialog.Portal>
@@ -51,13 +59,22 @@ export function GameOverModal(props: GameOverModalProps) {
             <Dialog.Title class={styles.title}>
               {formatGameResult(props.status)}
             </Dialog.Title>
-            <button
-              type="button"
-              class={styles.returnButton}
-              onClick={handleReturnToTitle}
-            >
-              Return to Title
-            </button>
+            <div class={styles.actions}>
+              <button
+                type="button"
+                class={`${styles.rematchButton} ${chrome.accentButton}`}
+                onClick={handleRematch}
+              >
+                Rematch
+              </button>
+              <button
+                type="button"
+                class={`${styles.returnButton} ${chrome.outlineButton}`}
+                onClick={handleReturnToTitle}
+              >
+                Return to Title
+              </button>
+            </div>
           </Dialog.Content>
         </div>
       </Dialog.Portal>

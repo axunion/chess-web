@@ -34,8 +34,8 @@ function toRows(history: HistoryEntry[]): MoveRow[] {
   return rows;
 }
 
-/** Full move list, opened on demand from the game menu — keeps the board/trays
-    at a fixed height regardless of how long the game runs (see GameStatusBar). */
+/** Full move list, opened on demand from the game menu — keeps the board/cards
+    at a fixed height regardless of how long the game runs (see GameMenu). */
 export function MoveHistoryDialog(props: MoveHistoryDialogProps) {
   let scrollRef: HTMLElement | undefined;
 

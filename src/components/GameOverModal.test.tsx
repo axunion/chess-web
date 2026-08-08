@@ -18,6 +18,7 @@ describe("GameOverModal", () => {
       <GameOverModal
         status={{ kind: "resigned", winner: "w" }}
         onReturnToTitle={onReturnToTitle}
+        onRematch={vi.fn()}
       />
     ));
 
@@ -28,11 +29,27 @@ describe("GameOverModal", () => {
     expect(onReturnToTitle).toHaveBeenCalledTimes(1);
   });
 
+  it("calls onRematch when Rematch is clicked", async () => {
+    const onRematch = vi.fn();
+    render(() => (
+      <GameOverModal
+        status={{ kind: "resigned", winner: "w" }}
+        onReturnToTitle={vi.fn()}
+        onRematch={onRematch}
+      />
+    ));
+
+    await vi.advanceTimersByTimeAsync(301);
+    fireEvent.click(screen.getByText("Rematch"));
+    expect(onRematch).toHaveBeenCalledTimes(1);
+  });
+
   it("stays closed while the game is still playing", async () => {
     render(() => (
       <GameOverModal
         status={{ kind: "playing", check: false }}
         onReturnToTitle={vi.fn()}
+        onRematch={vi.fn()}
       />
     ));
 

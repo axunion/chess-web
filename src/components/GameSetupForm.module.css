@@ -62,7 +62,7 @@
    lighter than --ink (so the track doesn't outweigh the wordmark above it). */
 .segmentedLabel[data-checked] {
   background: var(--board-frame);
-  color: var(--surface-raised);
+  color: var(--ink);
 }
 
 /* Difficulty/Color stay mounted at full size in pvp — grayed out and inert
