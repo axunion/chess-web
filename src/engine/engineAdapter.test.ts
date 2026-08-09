@@ -126,21 +126,68 @@ describe("engineAdapter.init()", () => {
 });
 
 describe("engineAdapter.bestMove()", () => {
-  it("sends setoption/position/go and resolves with the parsed move", async () => {
+  it("sends UCI_LimitStrength/UCI_Elo/position/go for an elo-tier difficulty", async () => {
     const { adapter, worker } = await initializedAdapter();
 
     const movePromise = adapter.bestMove("8/8/8/8/8/8/8/8 w - - 0 1", "normal");
     await Promise.resolve();
     await Promise.resolve();
 
-    expect(worker.posted).toContain("setoption name Skill Level value 8");
+    expect(worker.posted).toContain(
+      "setoption name UCI_LimitStrength value true",
+    );
+    expect(worker.posted).toContain("setoption name UCI_Elo value 2100");
     expect(worker.posted).toContain("position fen 8/8/8/8/8/8/8/8 w - - 0 1");
-    expect(worker.posted).toContain("go movetime 600");
+    expect(worker.posted).toContain("go movetime 700");
 
     worker.emitMessage("info depth 1 score cp 10");
     worker.emitMessage("bestmove e2e4 ponder e7e5");
 
     await expect(movePromise).resolves.toBe("e2e4");
+  });
+
+  it("sends UCI_LimitStrength false and Skill Level for a skill-tier difficulty", async () => {
+    const { adapter, worker } = await initializedAdapter();
+
+    const movePromise = adapter.bestMove("fen", "elite");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(worker.posted).toContain(
+      "setoption name UCI_LimitStrength value false",
+    );
+    expect(worker.posted).toContain("setoption name Skill Level value 20");
+    expect(worker.posted).toContain("go movetime 2500");
+    expect(
+      worker.posted.some((cmd) => cmd.startsWith("setoption name UCI_Elo")),
+    ).toBe(false);
+
+    worker.emitMessage("bestmove e2e4");
+    await expect(movePromise).resolves.toBe("e2e4");
+  });
+
+  it("resends UCI_LimitStrength on every search, never carrying it over between games", async () => {
+    const { adapter, worker } = await initializedAdapter();
+
+    const first = adapter.bestMove("fen1", "master"); // elo tier: LimitStrength true
+    await Promise.resolve();
+    await Promise.resolve();
+    worker.emitMessage("bestmove e2e4");
+    await first;
+
+    const postedBeforeSecond = worker.posted.length;
+    const second = adapter.bestMove("fen2", "beginner"); // skill tier: LimitStrength false
+    await Promise.resolve();
+    await Promise.resolve();
+
+    const secondCommands = worker.posted.slice(postedBeforeSecond);
+    expect(secondCommands).toContain(
+      "setoption name UCI_LimitStrength value false",
+    );
+    expect(secondCommands).toContain("setoption name Skill Level value 0");
+
+    worker.emitMessage("bestmove d2d4");
+    await expect(second).resolves.toBe("d2d4");
   });
 
   it("rejects when the engine reports bestmove (none)", async () => {
@@ -163,9 +210,9 @@ describe("engineAdapter.bestMove()", () => {
     worker.emitMessage("readyok");
     await initPromise;
 
-    const movePromise = adapter.bestMove("fen", "easy"); // easy: movetime 300ms
+    const movePromise = adapter.bestMove("fen", "easy"); // easy: movetime 400ms
     const assertion = expect(movePromise).rejects.toThrow(/timed out/);
-    await vi.advanceTimersByTimeAsync(300 + 5_000 + 1);
+    await vi.advanceTimersByTimeAsync(400 + 5_000 + 1);
     await assertion;
 
     expect(worker.posted.at(-1)).toBe("stop");
@@ -177,7 +224,7 @@ describe("engineAdapter.bestMove()", () => {
     const first = adapter.bestMove("fen1", "easy");
     await Promise.resolve();
     await Promise.resolve();
-    expect(worker.posted).toContain("go movetime 300");
+    expect(worker.posted).toContain("go movetime 400");
 
     const firstRejection =
       expect(first).rejects.toBeInstanceOf(EngineBusyError);

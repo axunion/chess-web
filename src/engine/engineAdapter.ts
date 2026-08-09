@@ -3,6 +3,8 @@ import { DIFFICULTY_PRESETS } from "./difficulty";
 import {
   cmdGo,
   cmdPosition,
+  cmdSetElo,
+  cmdSetLimitStrength,
   cmdSetSkill,
   isReadyOk,
   isUciOk,
@@ -130,7 +132,8 @@ export function createEngineAdapter(
     resolve: (move: string) => void,
     reject: (err: Error) => void,
   ): void {
-    const { skill, movetimeMs } = DIFFICULTY_PRESETS[difficulty];
+    const preset = DIFFICULTY_PRESETS[difficulty];
+    const { movetimeMs } = preset;
     let settled = false;
 
     const timer = setTimeout(() => {
@@ -163,7 +166,18 @@ export function createEngineAdapter(
     }
 
     w.addEventListener("message", onMessage);
-    w.postMessage(cmdSetSkill(skill));
+    // The worker persists across games (see EngineAdapter lifecycle), so a
+    // stale option from a previous difficulty must never leak in. Resending
+    // UCI_LimitStrength every search is enough to guarantee that: Stockfish
+    // uses UCI_Elo when it's on and Skill Level when it's off, so whichever
+    // of the two commands below is *not* sent this search stays inert even
+    // if a leftover value from an earlier search is still set.
+    w.postMessage(cmdSetLimitStrength(preset.mode === "elo"));
+    if (preset.mode === "elo") {
+      w.postMessage(cmdSetElo(preset.elo));
+    } else {
+      w.postMessage(cmdSetSkill(preset.skill));
+    }
     w.postMessage(cmdPosition(fen));
     w.postMessage(cmdGo(movetimeMs));
   }

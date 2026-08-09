@@ -10,10 +10,14 @@ interface GameSetupFormProps {
 type PlayerColorChoice = Color | "random";
 
 const DIFFICULTIES: { value: Difficulty; label: string }[] = [
+  { value: "beginner", label: "Beginner" },
   { value: "easy", label: "Easy" },
+  { value: "casual", label: "Casual" },
   { value: "normal", label: "Normal" },
   { value: "hard", label: "Hard" },
+  { value: "expert", label: "Expert" },
   { value: "master", label: "Master" },
+  { value: "elite", label: "Elite" },
 ];
 
 const PLAYER_COLORS: { value: PlayerColorChoice; label: string }[] = [
@@ -78,7 +82,7 @@ export function GameSetupForm(props: GameSetupFormProps) {
         <RadioGroup.Label class={styles.fieldLabel}>
           Difficulty
         </RadioGroup.Label>
-        <div class={styles.segmented}>
+        <div class={`${styles.segmented} ${styles.segmentedGrid}`}>
           <For each={DIFFICULTIES}>
             {(item) => (
               <RadioGroup.Item value={item.value} class={styles.segmentedItem}>

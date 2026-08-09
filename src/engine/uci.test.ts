@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   cmdGo,
   cmdPosition,
+  cmdSetElo,
+  cmdSetLimitStrength,
   cmdSetSkill,
   isReadyOk,
   isUciOk,
@@ -11,6 +13,19 @@ import {
 describe("uci command builders", () => {
   it("builds the setoption Skill Level command", () => {
     expect(cmdSetSkill(8)).toBe("setoption name Skill Level value 8");
+  });
+
+  it("builds the setoption UCI_LimitStrength command", () => {
+    expect(cmdSetLimitStrength(true)).toBe(
+      "setoption name UCI_LimitStrength value true",
+    );
+    expect(cmdSetLimitStrength(false)).toBe(
+      "setoption name UCI_LimitStrength value false",
+    );
+  });
+
+  it("builds the setoption UCI_Elo command", () => {
+    expect(cmdSetElo(1900)).toBe("setoption name UCI_Elo value 1900");
   });
 
   it("builds the position fen command", () => {

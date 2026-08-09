@@ -1,4 +1,4 @@
-import type { Color, GameConfig } from "../game/types";
+import { type Color, DIFFICULTIES, type GameConfig } from "../game/types";
 
 /** LocalStorage key for the single (always-overwritten) saved game. */
 export const STORAGE_KEY = "chess-web.save.v1";
@@ -12,7 +12,7 @@ export interface SavedGameV1 {
   resignedBy?: Color;
 }
 
-const DIFFICULTIES = new Set(["easy", "normal", "hard", "master"]);
+const VALID_DIFFICULTIES = new Set<string>(DIFFICULTIES);
 const COLORS = new Set(["w", "b"]);
 const MODES = new Set(["pvp", "cpu"]);
 
@@ -23,7 +23,7 @@ function isGameConfig(value: unknown): value is GameConfig {
     typeof v.mode === "string" &&
     MODES.has(v.mode) &&
     typeof v.difficulty === "string" &&
-    DIFFICULTIES.has(v.difficulty) &&
+    VALID_DIFFICULTIES.has(v.difficulty) &&
     typeof v.playerColor === "string" &&
     COLORS.has(v.playerColor)
   );

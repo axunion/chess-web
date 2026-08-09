@@ -73,6 +73,37 @@ describe("persistence/storage", () => {
     expect(loadGame()).toBeNull();
   });
 
+  it("accepts every difficulty value, old and new tiers alike", () => {
+    for (const difficulty of [
+      "beginner",
+      "easy",
+      "casual",
+      "normal",
+      "hard",
+      "expert",
+      "master",
+      "elite",
+    ] as const) {
+      const saved = { ...SAMPLE, config: { ...SAMPLE.config, difficulty } };
+      saveGame(saved);
+
+      expect(loadGame()).toEqual(saved);
+    }
+  });
+
+  it("returns null and clears the key on a difficulty typo", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({
+        ...SAMPLE,
+        config: { ...SAMPLE.config, difficulty: "hardd" },
+      }),
+    );
+
+    expect(loadGame()).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
   it("clearGame removes the saved key", () => {
     saveGame(SAMPLE);
     clearGame();

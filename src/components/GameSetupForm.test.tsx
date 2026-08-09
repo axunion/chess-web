@@ -57,4 +57,31 @@ describe("GameSetupForm", () => {
       playerColor: "b",
     });
   });
+
+  it("renders all 8 difficulty tiers and submits a non-default one", () => {
+    const onStart = vi.fn();
+    render(() => <GameSetupForm onStart={onStart} />);
+
+    for (const label of [
+      "Beginner",
+      "Easy",
+      "Casual",
+      "Normal",
+      "Hard",
+      "Expert",
+      "Master",
+      "Elite",
+    ]) {
+      expect(screen.getByRole("radio", { name: label })).not.toBeNull();
+    }
+
+    fireEvent.click(screen.getByRole("radio", { name: "Elite" }));
+    fireEvent.click(screen.getByText("Start"));
+
+    expect(onStart).toHaveBeenCalledWith({
+      mode: "cpu",
+      difficulty: "elite",
+      playerColor: "w",
+    });
+  });
 });

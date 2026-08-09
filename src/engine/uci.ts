@@ -7,6 +7,12 @@
 export const cmdSetSkill = (level: number): string =>
   `setoption name Skill Level value ${level}`;
 
+export const cmdSetLimitStrength = (enabled: boolean): string =>
+  `setoption name UCI_LimitStrength value ${enabled}`;
+
+export const cmdSetElo = (elo: number): string =>
+  `setoption name UCI_Elo value ${elo}`;
+
 export const cmdPosition = (fen: string): string => `position fen ${fen}`;
 
 export const cmdGo = (movetimeMs: number): string =>

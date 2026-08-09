@@ -6,7 +6,17 @@ import type { Color, PieceSymbol, Square } from "chess.js";
 export type { Color, PieceSymbol, Square };
 
 export type GameMode = "pvp" | "cpu";
-export type Difficulty = "easy" | "normal" | "hard" | "master";
+export const DIFFICULTIES = [
+  "beginner",
+  "easy",
+  "casual",
+  "normal",
+  "hard",
+  "expert",
+  "master",
+  "elite",
+] as const;
+export type Difficulty = (typeof DIFFICULTIES)[number];
 
 export type GameStatus =
   | { kind: "playing"; check: boolean }

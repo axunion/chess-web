@@ -15,9 +15,9 @@
   letter-spacing: 0.1em;
 }
 
-/* One shared visual language for Mode/Difficulty/Color — a single pill-shaped
-   track, divided by hairlines, with the selected segment filled solid. Scales
-   to more segments later (more difficulty tiers) without any redesign. */
+/* One shared visual language for Mode/Difficulty/Color — a single track,
+   divided by hairlines, with the selected segment filled solid. Mode (2) and
+   Color (3) stay single-row pills; Difficulty (8) wraps into a grid below. */
 .segmented {
   display: flex;
   border: 1px solid var(--hairline);
@@ -32,6 +32,24 @@
 
 .segmentedItem:last-child {
   border-right: none;
+}
+
+/* Difficulty alone has too many options for one row at this card's fixed
+   width — wrap it into a 4-column grid instead, restoring the same
+   per-segment width the other pill-shaped fields keep. A two-row block reads
+   as a rounded rectangle, not a pill, so it takes the standard corner radius. */
+.segmentedGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-radius: var(--radius);
+}
+
+.segmentedGrid .segmentedItem:nth-child(4n) {
+  border-right: none;
+}
+
+.segmentedGrid .segmentedItem:nth-child(-n + 4) {
+  border-bottom: 1px solid var(--hairline);
 }
 
 .segmentedItem:has(:focus-visible) {

@@ -1,14 +1,50 @@
 import { describe, expect, it } from "vitest";
 import { DIFFICULTY_PRESETS } from "./difficulty";
 
-describe("DIFFICULTY_PRESETS (spec/03 §3 table)", () => {
-  it("maps each difficulty to its skill level and movetime", () => {
-    expect(DIFFICULTY_PRESETS.easy).toEqual({ skill: 2, movetimeMs: 300 });
-    expect(DIFFICULTY_PRESETS.normal).toEqual({ skill: 8, movetimeMs: 600 });
-    expect(DIFFICULTY_PRESETS.hard).toEqual({ skill: 14, movetimeMs: 1000 });
-    expect(DIFFICULTY_PRESETS.master).toEqual({
+describe("DIFFICULTY_PRESETS", () => {
+  it("uses Skill Level for the beginner and elite extremes", () => {
+    expect(DIFFICULTY_PRESETS.beginner).toEqual({
+      mode: "skill",
+      skill: 0,
+      movetimeMs: 250,
+    });
+    expect(DIFFICULTY_PRESETS.elite).toEqual({
+      mode: "skill",
       skill: 20,
-      movetimeMs: 2000,
+      movetimeMs: 2500,
+    });
+  });
+
+  it("uses UCI_Elo for the six calibrated middle tiers, kept above the floor shared with beginner", () => {
+    expect(DIFFICULTY_PRESETS.easy).toEqual({
+      mode: "elo",
+      elo: 1500,
+      movetimeMs: 400,
+    });
+    expect(DIFFICULTY_PRESETS.casual).toEqual({
+      mode: "elo",
+      elo: 1800,
+      movetimeMs: 500,
+    });
+    expect(DIFFICULTY_PRESETS.normal).toEqual({
+      mode: "elo",
+      elo: 2100,
+      movetimeMs: 700,
+    });
+    expect(DIFFICULTY_PRESETS.hard).toEqual({
+      mode: "elo",
+      elo: 2400,
+      movetimeMs: 900,
+    });
+    expect(DIFFICULTY_PRESETS.expert).toEqual({
+      mode: "elo",
+      elo: 2700,
+      movetimeMs: 1200,
+    });
+    expect(DIFFICULTY_PRESETS.master).toEqual({
+      mode: "elo",
+      elo: 3000,
+      movetimeMs: 1600,
     });
   });
 });
