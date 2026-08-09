@@ -1,0 +1,14 @@
+/* Visually hidden but still reachable by assistive tech (screen-reader-only
+   text, live regions, form-control group labels that have a visible
+   equivalent elsewhere on screen). */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

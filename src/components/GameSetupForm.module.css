@@ -3,21 +3,13 @@
 }
 
 .field {
-  margin-bottom: 0.85rem;
+  margin-bottom: 1.6rem;
 }
 
-.fieldLabel {
-  display: block;
-  margin-bottom: 0.4rem;
-  color: var(--ink-muted);
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-/* One shared visual language for Mode/Difficulty/Color — a single track,
-   divided by hairlines, with the selected segment filled solid. Mode (2) and
-   Color (3) stay single-row pills; Difficulty (8) wraps into a grid below. */
+/* Shared pill visual language for Mode — a single track, divided by
+   hairlines, with the selected segment filled solid. Color and Difficulty
+   have their own icon/slider treatment below since a text pill doesn't fit
+   either (see .colorPicker, .sliderTrack). */
 .segmented {
   display: flex;
   border: 1px solid var(--hairline);
@@ -34,24 +26,6 @@
   border-right: none;
 }
 
-/* Difficulty alone has too many options for one row at this card's fixed
-   width — wrap it into a 4-column grid instead, restoring the same
-   per-segment width the other pill-shaped fields keep. A two-row block reads
-   as a rounded rectangle, not a pill, so it takes the standard corner radius. */
-.segmentedGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-radius: var(--radius);
-}
-
-.segmentedGrid .segmentedItem:nth-child(4n) {
-  border-right: none;
-}
-
-.segmentedGrid .segmentedItem:nth-child(-n + 4) {
-  border-bottom: 1px solid var(--hairline);
-}
-
 .segmentedItem:has(:focus-visible) {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
@@ -62,10 +36,10 @@
 .segmentedLabel {
   display: block;
   overflow: hidden;
-  padding: 0.5rem 0.4rem;
+  padding: 0.9rem 0.4rem;
   color: var(--ink);
   font-family: var(--font-ui);
-  font-size: 0.85rem;
+  font-size: 0.9rem;
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -83,20 +57,170 @@
   color: var(--ink);
 }
 
-/* Difficulty/Color stay mounted at full size in pvp — grayed out and inert
-   rather than hidden, so the card never resizes and Start never moves. */
-.segmentedLabel[data-disabled] {
+/* Color icon picker — three circular king swatches instead of a text pill
+   (Mode's .segmented doesn't fit a two-tone icon, and Color no longer needs
+   the divided-track look). Always light-backed (see tokens.css: black piece
+   glyphs carry no fill of their own and vanish on a dark background off the
+   board — same reason PlayerCard.module.css's .piece uses --board-light for
+   both colors), so White/Black are told apart by the glyph, not the disc. */
+.colorPicker {
+  display: flex;
+  justify-content: center;
+  gap: 1.1rem;
+}
+
+.colorOptionLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+}
+
+.colorSwatch {
+  position: relative;
+  width: 2.75rem;
+  height: 2.75rem;
+  overflow: hidden;
+  border: 1px solid var(--board-frame);
+  border-radius: 50%;
+  background: var(--board-light);
+  box-shadow: 0 0 0 2px transparent;
+  transition: box-shadow var(--dur-fade) var(--ease-move);
+}
+
+.colorSwatch svg {
+  width: 100%;
+  height: 100%;
+  padding: 0.3rem;
+  filter: var(--shadow-piece);
+}
+
+/* Random: one white king and one black king, each clipped to its half —
+   reuses the existing king glyphs instead of a generic shuffle icon, so it
+   stays a piece like the other two options. */
+.halfKing {
+  position: absolute;
+  inset: 0;
+}
+
+.halfLeft {
+  clip-path: inset(0 50% 0 0);
+}
+
+.halfRight {
+  clip-path: inset(0 0 0 50%);
+}
+
+.colorCaption {
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.colorOptionLabel[data-checked] .colorSwatch {
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.colorOptionLabel[data-checked] .colorCaption {
+  color: var(--ink);
+}
+
+.colorOptionLabel[data-disabled] {
+  cursor: not-allowed;
   opacity: 0.4;
+}
+
+/* Anchored on .colorOption (RadioGroup.Item), not .colorOptionLabel — the
+   native input and the label are siblings under Item, not nested, so :has()
+   only sees the focus from that common ancestor. */
+.colorOption:has(:focus-visible) .colorSwatch {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Difficulty — one continuous slider (8 stops) instead of 8 competing
+   buttons, with the chosen tier's name called out above the track. All 8
+   tiers show just the name (no Elo/skill numbers) — a real calibrated
+   rating exists for 6 of the 8 but not the two skill-based extremes, and a
+   partial number would read as more precise than it is. */
+.difficultyReadout {
+  margin-bottom: 1.1rem;
+}
+
+.difficultyName {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
+.sliderTrack {
+  position: relative;
+  height: 4px;
+  margin: 0.75rem 0;
+  border-radius: 999px;
+  background: var(--hairline);
+}
+
+.sliderTrack[data-disabled] {
+  opacity: 0.4;
+}
+
+.sliderFill {
+  position: absolute;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.sliderThumb {
+  position: absolute;
+  top: 50%;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: -0.6rem;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 45%);
+  cursor: grab;
+}
+
+/* Extends the tappable area to ~44px (touch-target guideline) without
+   growing the visible dot — a pseudo-element painted outside the thumb's own
+   box still counts as a hit on the thumb itself. */
+.sliderThumb::before {
+  content: "";
+  position: absolute;
+  inset: -0.8rem;
+}
+
+.sliderThumb[data-disabled] {
   cursor: not-allowed;
 }
 
-/* Fading an already-filled (checked) segment via opacity alone would wash its
-   light text out against the fill color — swap to a flatter, still-legible
-   muted fill instead of dimming that combination. */
-.segmentedLabel[data-checked][data-disabled] {
-  opacity: 1;
-  background: var(--ink-muted);
-  color: var(--surface-raised);
+.sliderThumb:has(:focus-visible) {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.sliderEndLabels {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* The Slider root (the same element `.field` is applied to) already carries
+   `data-disabled` from Kobalte's form-control state — reuse that instead of
+   re-deriving "is this cpu mode" separately for these two plain divs. */
+.field[data-disabled] .difficultyReadout,
+.field[data-disabled] .sliderEndLabels {
+  opacity: 0.4;
 }
 
 .actions {
@@ -107,7 +231,7 @@
   width: 100%;
   padding: 0.95rem 1.1rem;
   border: none;
-  border-radius: var(--radius);
+  border-radius: 999px;
   background: var(--accent);
   color: var(--surface-raised);
   font-family: var(--font-ui);

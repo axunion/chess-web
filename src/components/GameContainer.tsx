@@ -8,12 +8,14 @@ import type {
 } from "../game/types";
 import { createGameStore } from "../store/gameStore";
 import { Chessboard } from "./Chessboard";
+import { capitalize } from "./capitalize";
 import { EngineStatus } from "./EngineStatus";
 import styles from "./GameContainer.module.css";
 import { GameMenu } from "./GameMenu";
 import { GameOverModal } from "./GameOverModal";
 import { formatGameResult } from "./gameResultText";
 import { PlayerCard } from "./PlayerCard";
+import srOnly from "./srOnly.module.css";
 import { TitleScreen } from "./TitleScreen";
 
 type Screen = "title" | "game";
@@ -34,9 +36,7 @@ function capturedBy(history: HistoryEntry[], color: Color): PieceSymbol[] {
 function sideLabel(color: Color, config: GameConfig): string {
   if (config.mode === "pvp") return color === "w" ? "White" : "Black";
   if (color === config.playerColor) return "You";
-  const difficulty =
-    config.difficulty[0].toUpperCase() + config.difficulty.slice(1);
-  return `Stockfish · ${difficulty}`;
+  return `Stockfish · ${capitalize(config.difficulty)}`;
 }
 
 export function GameContainer() {
@@ -99,7 +99,7 @@ export function GameContainer() {
               300ms-delayed popup) — distinct from EngineStatus's own
               role="status"/role="alert" spans, which announce mid-game
               engine state, not the final outcome. */}
-          <div class={styles.srOnly} role="status" aria-live="polite">
+          <div class={srOnly.srOnly} role="status" aria-live="polite">
             <Show when={!isPlaying()}>
               {formatGameResult(store.state.status)}
             </Show>
