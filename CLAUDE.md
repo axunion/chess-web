@@ -13,7 +13,7 @@ restated here. Bias toward caution over speed; on trivial tasks, use judgment.
   orphaned; don't tidy unrelated dead code — mention it instead.
 - **Goal-driven.** Turn each task into a verifiable outcome ("fix the bug" → "write a
   failing test that reproduces it, then make it pass").
-- If a simpler path than the one asked for exists, say so and push back when warranted.
+- Push back when warranted, even if that means questioning the request itself.
 
 ## Language
 
@@ -56,58 +56,42 @@ development-time planning notes follow the language the user is working in.
 
 ## Subagents
 
-Four specialized subagents live in `.claude/agents/`: `researcher`, `reviewer`,
-`tester`, `inspector`. They're generic — reusable across tasks, not tied to any one
-feature — and can be dispatched directly, or driven through the built-in `/goal`
-command for larger work (see the tier below). Local code search is the built-in
-`Explore` agent's job, so no agent here duplicates it: `researcher` covers only
-external knowledge (third-party API usage, version differences, what a library's own
-docs endorse).
+Four subagents live in `.claude/agents/`: `researcher`, `reviewer`, `tester`,
+`inspector` — generic, dispatchable directly or through `/goal`. Local code search is
+`Explore`'s job; `researcher` covers only external knowledge (third-party API usage,
+version differences, docs-endorsed patterns).
 
 - **Trivial** (one-line fixes, typos, config tweaks): implement directly, no agents.
-- **Non-trivial but contained** (a self-contained change in one area): implement
-  directly — optionally preceded by a research pass first (`Explore` when an
-  established convention is worth confirming, `researcher` when an unfamiliar
-  chess.js/stockfish/@kobalte/core/solid-js API is involved) — then run `reviewer` and
-  `tester` in parallel automatically, without asking first. Both are read-only/test-only,
-  so the cost of running them is low and they exist specifically to catch the blind spot
-  of reviewing your own work.
-- **Large, ambiguous, or high-risk** (spans many files, touches the layer-boundary risk
-  area below substantially, or the task itself is genuinely ambiguous): propose that the
-  user drive it with the built-in `/goal` command rather than assuming it's wanted — the
-  reason is cost and duration, not risk. Write the completion condition to explicitly
-  require `reviewer` and `tester` passing, e.g. "implement X; done when reviewer reports
-  no findings and tester passes" — `/goal`'s evaluator only checks the condition text
-  against the transcript each turn and has no built-in knowledge these agents exist, so a
-  condition that omits them lets the loop end right after implementation with no
-  independent check ever run. Once the user sets the goal, repeat this shape each turn:
-  research (`Explore` at very thorough breadth — it doesn't load `CLAUDE.md` or git
-  status, so restate the layer-boundary rule verbatim in its prompt — and `researcher` in
-  parallel, since neither depends on the other's result), implement here, then `reviewer`
-  and `tester` in parallel. "The reviewer raised things I decided weren't important" does
-  not count as clean. Pass `run_in_background: false` on every `Agent` call in this
-  sequence — a backgrounded call returns a name instead of a result and breaks the
-  sequencing a `/goal` turn depends on. Never commit, push, or open a PR as part of a
-  passing loop — a human looks at the diff first.
+- **Non-trivial but contained**: implement directly — optionally preceded by `Explore`
+  (confirming an established convention) or `researcher` (an unfamiliar
+  chess.js/stockfish/@kobalte/core/solid-js API) — then run `reviewer` and `tester` in
+  parallel automatically, without asking first; both are read-only/test-only and exist
+  to catch the blind spot of reviewing your own work.
+- **Large, ambiguous, or high-risk** (spans many files, touches the layer-boundary rule
+  below substantially, or is genuinely ambiguous): propose the user drive it with
+  `/goal` instead of assuming it's wanted. Write the completion condition to explicitly
+  require `reviewer` and `tester` passing — `/goal`'s evaluator has no built-in
+  knowledge these agents exist, so a condition that omits them lets the loop end with no
+  independent check ever run. Each turn: `Explore` (very thorough breadth; it doesn't
+  load `CLAUDE.md` or git status, so restate the layer-boundary rule verbatim in its
+  prompt) and `researcher` in parallel, implement here, then `reviewer` and `tester` in
+  parallel — "the reviewer raised things I decided weren't important" does not count as
+  clean. Pass `run_in_background: false` on every `Agent` call in this sequence, since a
+  backgrounded call breaks the turn's sequencing. Never commit, push, or open a PR as
+  part of a passing loop — a human looks at the diff first.
 
-**Implementation always stays in the main conversation** — at every tier, including
-inside a `/goal` run. Only the scaffolding around it changes: none, then verification
-after, then research before and verification after with iteration. There is deliberately
-no `implementer` agent: a write agent enforces no useful tool restriction, its real
-product is the working tree rather than the summary it returns, and each fix pass would
-re-spawn it with no memory of the code it just wrote. Every agent above is read-only or
-test-only, which is exactly what makes them worth spawning — each checks work it didn't do.
+Implementation always stays in the main conversation, at every tier — there is no
+`implementer` agent, since a write agent enforces no useful tool restriction and each
+fix pass would re-spawn it with no memory of the code it just wrote. Every agent above
+is read-only or test-only, which is what makes them worth spawning.
 
-**Visual verification is a separate axis from the tiers above**, keyed to whether a
-change touches rendered UI rather than to how risky it is — a tier-2 CSS tweak may need a
-look while a tier-3 persistence refactor needs none. Three cases: **no rendered surface
-touched** — skip; **a small, isolated, single-property tweak** — a quick glance at
-`pnpm dev` is enough; **layout that can vary by viewport, a change spanning components
-that share styles, or chasing a reported visual bug** — dispatch `inspector`, which drives
-a disposable Playwright browser and sweeps viewport widths. Give it the full picture (it
-has no memory of the conversation) and treat a fix as unverified until a re-run comes back
-clean. It needs no confirmation to run, but it isn't automatic either — it costs a dev
-server plus a browser, so judge it against these three cases each time.
+Visual verification is a separate axis, keyed to whether a change touches rendered UI
+rather than how risky it is. **No rendered surface touched** — skip. **A small,
+isolated, single-property tweak** — a glance at `pnpm dev` is enough. **Layout that can
+vary by viewport, a change spanning components that share styles, or a reported visual
+bug** — dispatch `inspector`, which sweeps viewport widths in a disposable Playwright
+browser; give it the full picture (it has no memory of the conversation) and treat a fix
+as unverified until a re-run comes back clean.
 
 **Risk area — the layer boundary.** `src/game`, `src/engine`, `src/persistence` hold
 this project's core rules (chess move/state logic, the Stockfish UCI adapter,
