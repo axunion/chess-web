@@ -58,10 +58,11 @@ development-time planning notes follow the language the user is working in.
 
 Four specialized subagents live in `.claude/agents/`: `researcher`, `reviewer`,
 `tester`, `inspector`. They're generic — reusable across tasks, not tied to any one
-feature — and can be dispatched directly, or chained via the `/feature-loop` skill
-(`.claude/skills/feature-loop/`). Local code search is the built-in `Explore` agent's
-job, so no agent here duplicates it: `researcher` covers only external knowledge
-(third-party API usage, version differences, what a library's own docs endorse).
+feature — and can be dispatched directly, or driven through the built-in `/goal`
+command for larger work (see the tier below). Local code search is the built-in
+`Explore` agent's job, so no agent here duplicates it: `researcher` covers only
+external knowledge (third-party API usage, version differences, what a library's own
+docs endorse).
 
 - **Trivial** (one-line fixes, typos, config tweaks): implement directly, no agents.
 - **Non-trivial but contained** (a self-contained change in one area): implement
@@ -72,13 +73,25 @@ job, so no agent here duplicates it: `researcher` covers only external knowledge
   so the cost of running them is low and they exist specifically to catch the blind spot
   of reviewing your own work.
 - **Large, ambiguous, or high-risk** (spans many files, touches the layer-boundary risk
-  area below substantially, or the task itself is genuinely ambiguous): prefer
-  `/feature-loop`, which chains research → implement → review + test and iterates on
-  findings. Always confirm with the user before invoking it — the reason is cost and
-  duration, not risk: it spawns up to four agents and can loop three times.
+  area below substantially, or the task itself is genuinely ambiguous): propose that the
+  user drive it with the built-in `/goal` command rather than assuming it's wanted — the
+  reason is cost and duration, not risk. Write the completion condition to explicitly
+  require `reviewer` and `tester` passing, e.g. "implement X; done when reviewer reports
+  no findings and tester passes" — `/goal`'s evaluator only checks the condition text
+  against the transcript each turn and has no built-in knowledge these agents exist, so a
+  condition that omits them lets the loop end right after implementation with no
+  independent check ever run. Once the user sets the goal, repeat this shape each turn:
+  research (`Explore` at very thorough breadth — it doesn't load `CLAUDE.md` or git
+  status, so restate the layer-boundary rule verbatim in its prompt — and `researcher` in
+  parallel, since neither depends on the other's result), implement here, then `reviewer`
+  and `tester` in parallel. "The reviewer raised things I decided weren't important" does
+  not count as clean. Pass `run_in_background: false` on every `Agent` call in this
+  sequence — a backgrounded call returns a name instead of a result and breaks the
+  sequencing a `/goal` turn depends on. Never commit, push, or open a PR as part of a
+  passing loop — a human looks at the diff first.
 
 **Implementation always stays in the main conversation** — at every tier, including
-inside `/feature-loop`. Only the scaffolding around it changes: none, then verification
+inside a `/goal` run. Only the scaffolding around it changes: none, then verification
 after, then research before and verification after with iteration. There is deliberately
 no `implementer` agent: a write agent enforces no useful tool restriction, its real
 product is the working tree rather than the summary it returns, and each fix pass would
