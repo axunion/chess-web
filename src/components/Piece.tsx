@@ -13,6 +13,10 @@ interface PieceProps {
       animation is running, so the mid-flip position swap (see Chessboard.tsx)
       never plays out as its own separate slide alongside the board's rotate. */
   frozen?: boolean;
+  /** Raise stacking order for the piece now sitting on the last move's
+      destination square, so it doesn't render under a stationary piece
+      while sliding in (e.g. a knight passing over an occupied square). */
+  moving?: boolean;
 }
 
 export function Piece(props: PieceProps) {
@@ -31,6 +35,7 @@ export function Piece(props: PieceProps) {
       classList={{
         [styles.interactive]: props.interactive,
         [styles.frozen]: props.frozen,
+        [styles.moving]: props.moving,
       }}
       style={{ translate: `${fileIndex() * 100}% ${rankIndex() * 100}%` }}
       aria-hidden="true"

@@ -43,6 +43,32 @@ describe("Chessboard", () => {
     expect(e2.getAttribute("aria-pressed")).not.toBe("true");
   });
 
+  it("keeps the same DOM node for a moved piece, so the translate transition slides instead of teleporting", () => {
+    const store = createGameStore();
+    const { container } = render(() => (
+      <Chessboard state={store.state} onTapSquare={store.tapSquare} />
+    ));
+
+    const pieceLayer = container.querySelector('[class*="pieceLayer"]');
+    if (!pieceLayer) throw new Error("pieceLayer not found");
+    const pieceAt = (translate: string) =>
+      Array.from(pieceLayer.children).find(
+        (el) =>
+          (el as HTMLElement).style.getPropertyValue("translate") === translate,
+      );
+
+    // e2 = file e (index 4), rank 2 (index 8-2=6).
+    const e2Pawn = pieceAt("400% 600%");
+    expect(e2Pawn).not.toBeUndefined();
+
+    fireEvent.click(screen.getByLabelText("e2, white pawn"));
+    fireEvent.click(screen.getByLabelText("e4, empty"));
+
+    // e4 = file e (index 4), rank 4 (index 8-4=4).
+    const e4Pawn = pieceAt("400% 400%");
+    expect(e4Pawn).toBe(e2Pawn);
+  });
+
   it("draws coordinate labels in a gutter outside the checkered grid, not on the squares", () => {
     const store = createGameStore();
     const { container } = render(() => (

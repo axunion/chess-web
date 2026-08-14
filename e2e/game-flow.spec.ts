@@ -5,8 +5,8 @@ test("starts a Player vs Player game and makes a move on the real board", async 
 }) => {
   await page.goto("/");
 
-  await page.getByText("Player", { exact: true }).click();
-  await page.getByText("Start").click();
+  await page.getByText("vs Player", { exact: true }).click();
+  await page.getByRole("button", { name: "Start" }).click();
 
   await page.getByRole("button", { name: "e2, white pawn" }).click();
   await page.getByRole("button", { name: "e4, empty" }).click();

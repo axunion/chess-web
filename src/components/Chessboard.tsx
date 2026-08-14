@@ -198,6 +198,7 @@ export function Chessboard(props: ChessboardProps) {
                 interactive={false}
                 flipped={displayFlipped()}
                 frozen={piecesFrozen()}
+                moving={props.state.lastMove?.to === piece.square}
               />
             )}
           </For>

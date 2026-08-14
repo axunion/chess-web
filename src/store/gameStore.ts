@@ -1,4 +1,5 @@
-import { createStore, produce } from "solid-js/store";
+import { batch } from "solid-js";
+import { createStore, produce, reconcile } from "solid-js/store";
 import {
   createEngineAdapter,
   type EngineAdapter,
@@ -114,22 +115,32 @@ export function createGameStore(
     });
   }
 
-  /** Common post-move processing shared by human and (later) engine moves. */
+  /**
+   * Common post-move processing shared by human and (later) engine moves.
+   * `pieces` is reconciled by stable id (rather than replaced wholesale) so
+   * a piece that just moved keeps its DOM node, letting Piece.module.css's
+   * `translate` transition animate the slide instead of teleporting. Only
+   * here — `newGame`/`boot` intentionally keep a plain overwrite, since
+   * reconciling against an unrelated prior position would animate pieces
+   * sliding across the board on reset/load.
+   */
   function afterMove(result: MoveResult): void {
     currentPgn = result.snapshot.pgn;
-    setState(
-      produce((s) => {
-        s.fen = result.snapshot.fen;
-        s.turn = result.snapshot.turn;
-        s.pieces = result.snapshot.pieces;
-        s.history = chessGame.history();
-        s.status = result.snapshot.status;
-        s.lastMove = { from: result.entry.from, to: result.entry.to };
-        s.selected = null;
-        s.legalTargets = [];
-        s.pendingPromotion = null;
-      }),
-    );
+    batch(() => {
+      setState("pieces", reconcile(result.snapshot.pieces, { key: "id" }));
+      setState(
+        produce((s) => {
+          s.fen = result.snapshot.fen;
+          s.turn = result.snapshot.turn;
+          s.history = chessGame.history();
+          s.status = result.snapshot.status;
+          s.lastMove = { from: result.entry.from, to: result.entry.to };
+          s.selected = null;
+          s.legalTargets = [];
+          s.pendingPromotion = null;
+        }),
+      );
+    });
     persist();
     if (
       state.status.kind === "playing" &&

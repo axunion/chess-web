@@ -25,3 +25,7 @@
 .frozen {
   transition: none;
 }
+
+.moving {
+  z-index: 3;
+}
