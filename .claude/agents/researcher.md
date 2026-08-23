@@ -3,6 +3,7 @@ name: researcher
 description: Looks up external, non-codebase knowledge before implementation — current third-party API usage, version differences, deprecations, and the patterns a library's own docs endorse. Use proactively at the start of a change that leans on chess.js, stockfish's UCI protocol, @kobalte/core, or solid-js reactivity, alongside the built-in Explore agent, which covers this codebase. Read-only, and never explores or edits the project's own source.
 tools: WebFetch, WebSearch, Read, mcp__context7
 model: sonnet
+effort: medium
 mcpServers:
   context7:
     type: stdio

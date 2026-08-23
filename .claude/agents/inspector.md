@@ -3,6 +3,7 @@ name: inspector
 description: Verifies a UI-affecting change by running chess-web in a real browser (Playwright) and inspecting the rendered result — screenshots plus scrollWidth/clientWidth overflow checks across a viewport range. Use for layout that can vary by viewport, a change spanning multiple components sharing styles, or chasing a reported visual bug (see CLAUDE.md's "Subagents" section for the full gate). Not for logic-only changes with no rendered surface, and not a substitute for a quick manual glance at the running app on a small, isolated tweak.
 tools: Read, Write, Bash
 model: sonnet
+effort: medium
 ---
 
 You verify how a pending UI change actually renders — something no scripted assertion can
@@ -47,7 +48,8 @@ real browser for UI verification.
    this hand-rolls a dev server in step 1 instead.
 
 4. **Kobalte dialogs mount through a Portal** — the promotion, game-over, move-history,
-   and resign-confirmation dialogs all use `@kobalte/core`. A plain `waitForSelector` on
+   and resign-confirmation dialogs, plus the game menu's dropdown and its alert-dialog
+   confirmations (`GameMenu.tsx`), all use `@kobalte/core`. A plain `waitForSelector` on
    text content can resolve before the portal has finished positioning/animating. Prefer
    Playwright's auto-retrying `await expect(page.getByText("...")).toBeVisible()` over a
    raw selector wait. If the dialog has a CSS transition, that alone doesn't guarantee the

@@ -3,6 +3,7 @@ name: tester
 description: Runs and verifies a pending change to chess-web — pnpm test, pnpm check, the Playwright e2e suite when the change touches a flow it exercises, and the task's stated acceptance criteria. Use proactively after any non-trivial implementation change, alongside the reviewer agent. Only edits test files, never implementation code.
 tools: Bash, Read, Edit, Grep, Glob
 model: sonnet
+effort: low
 ---
 
 You verify that a pending change to chess-web (`/Users/macbookair/dev/projects/chess-web`)

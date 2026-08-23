@@ -6,21 +6,29 @@ restated here. Bias toward caution over speed; on trivial tasks, use judgment.
 
 ## Approach
 
-- **Nothing speculative.** No unasked-for abstractions, unused flexibility, or error
-  handling for cases this app can't reach — it's client-only, no server, no multi-user
+- **Think before coding.** State assumptions. Make routine judgment calls yourself and
+  note them; ask only when different interpretations would lead to materially different
+  work. If a simpler path exists, say so and push back when warranted.
+- **Simplest thing that works.** No unasked-for abstractions, flexibility, or error
+  handling for impossible cases — this app is client-only, no server, no multi-user
   state. If 200 lines could be 50, rewrite it.
-- **Leave adjacent code alone.** Remove only the imports and symbols your change
-  orphaned; don't tidy unrelated dead code — mention it instead.
+- **Surgical changes.** Every changed line should trace to the request. Don't refactor,
+  reformat, or "improve" adjacent code that isn't broken; match the surrounding style.
+  Remove only the imports and symbols your change orphaned; leave unrelated dead code
+  alone and mention it.
 - **Goal-driven.** Turn each task into a verifiable outcome ("fix the bug" → "write a
-  failing test that reproduces it, then make it pass").
-- Push back when warranted, even if that means questioning the request itself.
+  failing test that reproduces it, then make it pass"). For multi-step work, state a
+  brief plan before starting.
 
 ## Language
 
-Write everything in **English** — in-code comments, console output, error and log
-messages, AI-readable instruction files, and docs meant for readers (README and the
-like). This rule applies to artifacts, not conversation: chat replies and
-development-time planning notes follow the language the user is working in.
+Default to the user's language for everything interactive — chat replies, plan-mode
+proposals, clarifying questions, and any other back-and-forth during the session.
+
+Switch to English only for durable artifacts: things other people or tools will read
+after the session ends — in-code comments, console/log/error output, AI-readable
+instruction files, and reader-facing docs (README and the like). Scratch notes and other
+throwaway dev artifacts stay in the user's language.
 
 ## Code Structure
 
