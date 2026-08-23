@@ -69,7 +69,7 @@ function ConfirmDialog(props: ConfirmDialogProps) {
   );
 }
 
-/** Overflow menu for in-game actions, hosted in the self player card's header. */
+/** Overflow menu for in-game actions, floating in the play area's top-right corner. */
 type ConfirmAction = "resign" | "quit" | "newGame";
 
 export function GameMenu(props: GameMenuProps) {

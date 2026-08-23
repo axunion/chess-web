@@ -10,10 +10,11 @@
 
 /* Fixed min-height, identical on both cards — this is what keeps the two
    cards the same total height so the board centers between them. Must fit
-   the tallest header-row content on either card (self card's menu trigger,
-   or opponent card's inline engine-status text/spinner/retry button). Keep
-   both cards' header min-height in sync if either accessory's height
-   changes, or the board goes visually off-center again. */
+   the tallest header-row content on either card (currently only the
+   opponent card's inline engine-status text/spinner/retry button — the self
+   card has no accessory). Keep both cards' header min-height in sync if
+   EngineStatus's height changes, or the board goes visually off-center
+   again. */
 .header {
   display: flex;
   align-items: center;

@@ -139,25 +139,25 @@ export function GameContainer() {
                 advantage={advantage()[playerColor()]}
                 active={isPlaying() && store.state.turn === playerColor()}
                 label={sideLabel(playerColor(), store.state.config)}
-                headerAccessory={
-                  <GameMenu
-                    state={store.state}
-                    onQuit={returnToTitle}
-                    onResign={() =>
-                      // CPU games always resign the human's side; PvP resigns whoever's
-                      // turn it currently is (spec/05-interaction-flows.md §6).
-                      store.resign(
-                        store.state.config.mode === "cpu"
-                          ? store.state.config.playerColor
-                          : store.state.turn,
-                      )
-                    }
-                    onNewGame={restartGame}
-                    onFlip={toggleFlip}
-                  />
-                }
               />
             </div>
+          </div>
+          <div class={styles.menuSlot}>
+            <GameMenu
+              state={store.state}
+              onQuit={returnToTitle}
+              onResign={() =>
+                // CPU games always resign the human's side; PvP resigns whoever's
+                // turn it currently is (spec/05-interaction-flows.md §6).
+                store.resign(
+                  store.state.config.mode === "cpu"
+                    ? store.state.config.playerColor
+                    : store.state.turn,
+                )
+              }
+              onNewGame={restartGame}
+              onFlip={toggleFlip}
+            />
           </div>
           <GameOverModal
             status={store.state.status}

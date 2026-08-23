@@ -13,9 +13,10 @@ interface PlayerCardProps {
   active: boolean;
   /** Player-card label, e.g. "White"/"Black" (pvp) or "You"/"Stockfish · Normal" (cpu). */
   label: string;
-  /** Rendered at the end of the header row — GameMenu on the self card,
-      EngineStatus on the opponent card (cpu games only), omitted otherwise.
-      A slot, not a variant flag, so this component stays presentation-only
+  /** Rendered at the end of the header row — EngineStatus on the opponent
+      card (cpu games only), omitted otherwise (the self card has none; the
+      game menu floats independently — see GameContainer's .menuSlot). A
+      slot, not a variant flag, so this component stays presentation-only
       and composition stays in GameContainer. */
   headerAccessory?: JSX.Element;
 }

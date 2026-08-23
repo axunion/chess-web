@@ -41,10 +41,11 @@
      Unchanged by the player-card recomposition.
 
      dvh term — every non-board row stacked above/below it on mobile. The old
-     separate status bar row and cpu-notice row are both gone (menu moved
-     inline into the self card's header, engine status into the opponent
-     card's header), but each player card now carries its own panel padding
-     plus a header row that didn't exist before:
+     separate status bar row and cpu-notice row are both gone (engine status
+     moved inline into the opponent card's header; the game menu floats
+     absolutely-positioned above the layout and contributes no flow height),
+     but each player card now carries its own panel padding plus a header
+     row that didn't exist before:
        .container padding (top+bottom)              2 * 2rem       = 4rem
        .layout gap, 2 gaps between 3 rows            2 * 1.25rem    = 2.5rem
        PlayerCard x2, each:
