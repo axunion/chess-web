@@ -1,3 +1,8 @@
+.menuWrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .menuButton {
   display: flex;
   align-items: center;
@@ -10,6 +15,24 @@
   background: var(--surface);
   color: var(--ink-muted);
   cursor: pointer;
+}
+
+/* Transient "Copy PGN" confirmation, anchored below the trigger so it reads
+   without needing the menu to stay open (see GameMenu's copyPgn()). */
+.copiedBubble {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  right: 0;
+  z-index: 3;
+  padding: 0.3rem 0.6rem;
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
 .menuButton:hover,
@@ -79,41 +102,6 @@
   margin: 0.3rem 0.2rem;
   border: none;
   background: var(--hairline);
-}
-
-.dialogContent {
-  background: var(--surface-raised);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-panel);
-  padding: 1.5rem;
-  max-width: 20rem;
-}
-
-.dialogContent[data-expanded] {
-  animation: var(--kf-pop-in) var(--dur-fade) var(--ease-move);
-}
-
-.dialogContent[data-closed] {
-  animation: var(--kf-pop-out) var(--dur-fade) var(--ease-move);
-}
-
-.dialogTitle {
-  margin: 0 0 0.5rem;
-  font-family: var(--font-display);
-  color: var(--ink);
-  font-size: 1.1rem;
-}
-
-.dialogDescription {
-  margin: 0 0 1rem;
-  color: var(--ink-muted);
-  font-size: 0.9rem;
-}
-
-.dialogActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.5rem;
 }
 
 .cancelButton,

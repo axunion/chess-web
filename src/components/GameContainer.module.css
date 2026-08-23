@@ -52,6 +52,14 @@
   max-width: 560px;
 }
 
+/* Desktop-only move-history sidebar panel — see the @media block below for
+   its placement and how it replaces .layout's old spacer rows. */
+.historySlot {
+  display: none;
+  min-height: 0;
+  grid-area: history;
+}
+
 /* min-width: 0 overrides this grid item's default automatic minimum size
    (which otherwise floors at the min-content width of EngineStatus's
    nowrap status text/Retry button) — without it, a long status string can
@@ -94,23 +102,32 @@
     right: 1.5rem;
   }
 
-  /* Two flexible spacer rows (top/bottom, unnamed via ".") soak up all the
-     leftover height next to the now-much-taller board, so the two cards —
-     sized to their own natural auto height, not stretched — cluster
-     together near the board's vertical middle instead of getting pulled
-     apart to its top/bottom edges. auto-sized grid tracks only grow up to
-     their own content's natural size when a spanning item (here "board",
-     spanning all four rows) needs more room than they already provide, so
-     the opponent/self rows stay compact and the fr rows absorb the rest —
-     the board and the card pair read as one centered group. */
+  /* Bounds .container to the viewport instead of just flooring it there
+     (min-height let it grow taller than the viewport to fit content, which
+     is exactly what caused the whole-page scroll below — see .layout's
+     height). */
+  .container {
+    height: 100svh;
+  }
+
+  /* The middle row is the move-history panel, sized auto for the two cards
+     and 1fr for the panel so it absorbs all the leftover height next to the
+     now-much-taller board — filling what used to be two empty spacer rows
+     instead of just centering the cards against blank space. This only
+     actually bounds the panel's growth (rather than letting it and the
+     whole page grow with the move count, with a matching jump the moment
+     the first move replaces the "No moves yet" placeholder) because
+     .container above now gives .layout a definite height for the 1fr row's
+     leftover space to be computed against — a grid's fr rows fall back to
+     sizing themselves by content, same as auto, under an indefinite-height
+     ancestor. */
   .layout {
     grid-template-columns: auto 22rem;
-    grid-template-rows: 1fr auto auto 1fr;
+    grid-template-rows: auto 1fr auto;
     grid-template-areas:
-      "board ."
       "board opponent"
-      "board self"
-      "board .";
+      "board history"
+      "board self";
     /* Was width: 100% (from the mobile rule) — at desktop that stretches
        .layout across the whole .container, and grid tracks default to
        start-aligned within it, so the board+sidebar group would hug the
@@ -118,5 +135,10 @@
        intends. Shrink-to-fit so .container centers the actual group. */
     width: fit-content;
     max-width: none;
+    height: 100%;
+  }
+
+  .historySlot {
+    display: flex;
   }
 }

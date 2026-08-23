@@ -24,6 +24,7 @@ export interface MoveResult {
 export interface ChessGame {
   reset(): Snapshot;
   loadPgn(pgn: string): Snapshot; // throws on invalid PGN
+  undo(plies: number): Snapshot; // stops early if fewer plies are available
   legalTargets(from: Square): Square[]; // empty array = not selectable
   isPromotion(from: Square, to: Square): boolean;
   move(from: Square, to: Square, promotion?: PieceSymbol): MoveResult; // throws on illegal
@@ -57,6 +58,17 @@ export function createChessGame(): ChessGame {
         });
       }
     }
+  }
+
+  function syncFromChess(): void {
+    historyEntries = chess.history({ verbose: true }).map((m) => ({
+      san: m.san,
+      from: m.from,
+      to: m.to,
+      color: m.color,
+      captured: m.captured,
+    }));
+    rebuildPiecesFromBoard();
   }
 
   function findPieceIndex(square: Square): number {
@@ -173,14 +185,15 @@ export function createChessGame(): ChessGame {
         chess.reset();
         throw err;
       }
-      historyEntries = chess.history({ verbose: true }).map((m) => ({
-        san: m.san,
-        from: m.from,
-        to: m.to,
-        color: m.color,
-        captured: m.captured,
-      }));
-      rebuildPiecesFromBoard();
+      syncFromChess();
+      return snapshot();
+    },
+
+    undo(plies: number) {
+      for (let i = 0; i < plies; i++) {
+        if (!chess.undo()) break;
+      }
+      syncFromChess();
       return snapshot();
     },
 

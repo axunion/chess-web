@@ -28,6 +28,14 @@ export interface GameStore {
   requestEngineMove(): void;
   /** Re-attempts engine initialization/thinking after `engine === "error"` (spec/02 §4). */
   retryEngine(): void;
+  /** Takes back the last move (cpu games: the human's move plus the engine's reply). No-op unless playing, the engine is idle, and no promotion is pending. */
+  undo(): void;
+  /** pvp only: raises a draw offer for the other player to respond to. */
+  offerDraw(): void;
+  acceptDraw(): void;
+  declineDraw(): void;
+  /** Current game's PGN, read on demand (not part of reactive GameState — see the `currentPgn` comment below). */
+  getPgn(): string;
 }
 
 const DEFAULT_CONFIG: GameConfig = {
@@ -35,6 +43,26 @@ const DEFAULT_CONFIG: GameConfig = {
   difficulty: "normal",
   playerColor: "w",
 };
+
+/** Whether undo() would currently act; shared with GameMenu so a disabled menu item never promises an action the store would silently refuse. */
+export function canUndo(state: GameState): boolean {
+  return (
+    state.status.kind === "playing" &&
+    state.engine !== "thinking" &&
+    state.engine !== "loading" &&
+    state.pendingPromotion === null &&
+    state.history.length > 0
+  );
+}
+
+/** Whether offerDraw() would currently act; shared with GameMenu, same reason as canUndo(). */
+export function canOfferDraw(state: GameState): boolean {
+  return (
+    state.status.kind === "playing" &&
+    state.config.mode === "pvp" &&
+    !state.drawOffer
+  );
+}
 
 /**
  * Owns the single source of reactive game state and every mutation to it
@@ -73,6 +101,7 @@ export function createGameStore(
     pendingPromotion: null,
     lastMove: null,
     engine: "off",
+    drawOffer: false,
   });
 
   /** Input-lock rule from spec/05-interaction-flows.md §4. */
@@ -105,13 +134,14 @@ export function createGameStore(
   }
 
   /** Persists the current game (spec/02 §5: after every move, on resign, on new game). */
-  function persist(resignedBy?: Color): void {
+  function persist(resignedBy?: Color, drawAgreed?: boolean): void {
     saveGame({
       version: 1,
       savedAt: new Date().toISOString(),
       config: state.config,
       pgn: currentPgn,
       resignedBy,
+      drawAgreed,
     });
   }
 
@@ -169,6 +199,7 @@ export function createGameStore(
       pendingPromotion: null,
       lastMove: null,
       engine: "off",
+      drawOffer: false,
     });
     persist();
     if (config.mode === "cpu") {
@@ -219,12 +250,15 @@ export function createGameStore(
       history,
       status: saved.resignedBy
         ? { kind: "resigned", winner: saved.resignedBy === "w" ? "b" : "w" }
-        : snapshot.status,
+        : saved.drawAgreed
+          ? { kind: "draw", reason: "agreement" }
+          : snapshot.status,
       selected: null,
       legalTargets: [],
       pendingPromotion: null,
       lastMove: lastEntry ? { from: lastEntry.from, to: lastEntry.to } : null,
       engine: "off",
+      drawOffer: false,
     });
 
     // Resume engine thinking if the restored game is mid-CPU-turn (spec/02
@@ -299,8 +333,91 @@ export function createGameStore(
       status: { kind: "resigned", winner },
       selected: null,
       legalTargets: [],
+      // Reset defensively, same as newGame()/boot()/undo() — a pending
+      // drawOffer currently can't coexist with resign() being reachable
+      // (DrawOfferDialog's overlay blocks the menu), but that's a UI
+      // stacking guarantee, not one this store call should depend on.
+      drawOffer: false,
     });
     persist(color);
+  }
+
+  /** How many plies undo() should pop: cpu games normally take back the engine's reply plus the human's move before it, unless the engine hasn't replied yet (e.g. it errored, or the cpu moved first and the human hasn't moved at all). */
+  function pliesToUndo(): number {
+    if (state.config.mode !== "cpu") return 1;
+    const last = state.history.at(-1);
+    if (
+      last &&
+      last.color !== state.config.playerColor &&
+      state.history.length >= 2
+    ) {
+      return 2;
+    }
+    return 1;
+  }
+
+  function undo(): void {
+    // Deliberately not isInputLocked(): that also blocks mode === "cpu" &&
+    // turn !== playerColor, which is exactly the "engine errored before
+    // replying" state undo needs to allow recovery from.
+    if (!canUndo(state)) return;
+
+    const snapshot = chessGame.undo(pliesToUndo());
+    currentPgn = snapshot.pgn;
+    const history = chessGame.history();
+    const lastEntry = history.at(-1);
+    setState({
+      fen: snapshot.fen,
+      turn: snapshot.turn,
+      pieces: snapshot.pieces,
+      history,
+      status: snapshot.status,
+      selected: null,
+      legalTargets: [],
+      pendingPromotion: null,
+      lastMove: lastEntry ? { from: lastEntry.from, to: lastEntry.to } : null,
+      drawOffer: false,
+      // A stale "error" must not survive undo (recovering from that state is
+      // exactly what this is for — see the isInputLocked() comment above);
+      // any other value is either still accurate or about to be overwritten
+      // by the trailing requestEngineMove() below.
+      engine: state.engine === "error" ? "off" : state.engine,
+    });
+    persist();
+    // Mirrors afterMove()'s trailing check: if undo landed back on the
+    // engine's turn (e.g. undoing a cpu game's very first, engine-played
+    // move), it must be re-requested or the game stalls forever.
+    if (
+      state.status.kind === "playing" &&
+      state.config.mode === "cpu" &&
+      state.turn !== state.config.playerColor
+    ) {
+      requestEngineMove();
+    }
+  }
+
+  function offerDraw(): void {
+    if (!canOfferDraw(state)) return;
+    setState("drawOffer", true);
+  }
+
+  function acceptDraw(): void {
+    if (!state.drawOffer) return;
+    setState({
+      status: { kind: "draw", reason: "agreement" },
+      drawOffer: false,
+      selected: null,
+      legalTargets: [],
+    });
+    persist(undefined, true);
+  }
+
+  function declineDraw(): void {
+    setState("drawOffer", false);
+  }
+
+  function getPgn(): string {
+    return currentPgn;
   }
 
   /**
@@ -395,5 +512,10 @@ export function createGameStore(
     abandonGame,
     requestEngineMove,
     retryEngine,
+    undo,
+    offerDraw,
+    acceptDraw,
+    declineDraw,
+    getPgn,
   };
 }

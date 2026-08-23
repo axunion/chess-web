@@ -295,6 +295,104 @@ describe("chessGame", () => {
     expect(restored.history().map((e) => e.san)).toEqual(["e4", "e5", "Nf3"]);
   });
 
+  it("undo(1) after one move returns to the initial position", () => {
+    game.reset();
+    game.move("e2", "e4");
+
+    const snapshot = game.undo(1);
+
+    expect(snapshot.fen).toBe(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    );
+    expect(snapshot.turn).toBe("w");
+    expect(snapshot.pieces).toHaveLength(32);
+    expect(game.history()).toEqual([]);
+  });
+
+  it("undo() rebuilds piece ids from the board (like loadPgn/reset), not by carrying over pre-undo ids", () => {
+    game.reset();
+    applyMoves(game, [
+      ["e2", "e4"],
+      ["e7", "e5"],
+      ["g1", "f3"],
+    ]);
+
+    const snapshot = game.undo(3);
+
+    const fresh = createChessGame().reset();
+    expect(snapshot.pieces).toEqual(fresh.pieces);
+  });
+
+  it("undo(n) where n exceeds available history stops cleanly at the start position", () => {
+    game.reset();
+    applyMoves(game, [
+      ["e2", "e4"],
+      ["e7", "e5"],
+    ]);
+
+    const snapshot = game.undo(10);
+
+    expect(snapshot.fen).toBe(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+    );
+    expect(game.history()).toEqual([]);
+  });
+
+  it("undo() after a capture removes it from capturedBy()", () => {
+    game.reset();
+    applyMoves(game, [
+      ["e2", "e4"],
+      ["e7", "e5"],
+      ["g1", "f3"],
+      ["d7", "d6"],
+      ["f3", "e5"], // white knight captures black pawn
+    ]);
+    expect(game.capturedBy("w")).toEqual(["p"]);
+
+    game.undo(1);
+
+    expect(game.capturedBy("w")).toEqual([]);
+  });
+
+  it("undo() after a promotion (that captured) reverts the pawn and restores the captured piece", () => {
+    game.reset();
+    applyMoves(game, [
+      ["h2", "h4"],
+      ["g7", "g6"],
+      ["h4", "h5"],
+      ["g8", "f6"],
+      ["h5", "g6"],
+      ["f6", "e4"],
+      ["g6", "g7"],
+      ["e4", "c3"],
+    ]);
+    game.move("g7", "h8", "q");
+
+    const snapshot = game.undo(1);
+
+    const pawn = snapshot.pieces.find((p) => p.square === "g7");
+    expect(pawn?.type).toBe("p");
+    expect(pawn?.color).toBe("w");
+    const restoredRook = snapshot.pieces.find((p) => p.square === "h8");
+    expect(restoredRook?.type).toBe("r");
+    expect(restoredRook?.color).toBe("b");
+  });
+
+  it("undo() out of checkmate recomputes status back to playing", () => {
+    game.reset();
+    applyMoves(game, [
+      ["f2", "f3"],
+      ["e7", "e5"],
+      ["g2", "g4"],
+      ["d8", "h4"],
+    ]);
+    expect(game.history().at(-1)?.san).toBe("Qh4#");
+
+    const snapshot = game.undo(1);
+
+    expect(snapshot.status).toEqual({ kind: "playing", check: false });
+  });
+
   it("loadPgn throws on invalid PGN", () => {
     expect(() => game.loadPgn("not a valid pgn at all $$$")).toThrow();
   });

@@ -22,7 +22,10 @@ export type GameStatus =
   | { kind: "playing"; check: boolean }
   | { kind: "checkmate"; winner: Color }
   | { kind: "stalemate" }
-  | { kind: "draw"; reason: "threefold" | "insufficient" | "fifty-move" }
+  | {
+      kind: "draw";
+      reason: "threefold" | "insufficient" | "fifty-move" | "agreement";
+    }
   | { kind: "resigned"; winner: Color };
 
 export interface BoardPiece {
@@ -65,4 +68,6 @@ export interface GameState {
   pendingPromotion: { from: Square; to: Square } | null;
   lastMove: { from: Square; to: Square } | null;
   engine: EngineState;
+  /** Pending pvp draw offer awaiting the other player's response. Never persisted. */
+  drawOffer: boolean;
 }

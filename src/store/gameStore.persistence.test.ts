@@ -40,6 +40,34 @@ describe("gameStore persistence (spec/02 §5, §6)", () => {
     expect(saved?.resignedBy).toBe("w");
   });
 
+  it("saves drawAgreed on acceptDraw", () => {
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+    store.offerDraw();
+
+    store.acceptDraw();
+
+    const saved = readSavedGame();
+    expect(saved?.drawAgreed).toBe(true);
+    expect(saved?.resignedBy).toBeUndefined();
+  });
+
+  it("boot() restores a drawn-by-agreement game's status from drawAgreed", () => {
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+    store.offerDraw();
+    store.acceptDraw();
+
+    const restoredStore = createGameStore();
+    const restored = restoredStore.boot();
+
+    expect(restored).toBe(true);
+    expect(restoredStore.state.status).toEqual({
+      kind: "draw",
+      reason: "agreement",
+    });
+  });
+
   it("abandonGame() clears the saved game", () => {
     store.tapSquare("e2");
     store.tapSquare("e4");

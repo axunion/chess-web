@@ -9,11 +9,13 @@ import type {
 import { createGameStore } from "../store/gameStore";
 import { Chessboard } from "./Chessboard";
 import { capitalize } from "./capitalize";
+import { DrawOfferDialog } from "./DrawOfferDialog";
 import { EngineStatus } from "./EngineStatus";
 import styles from "./GameContainer.module.css";
 import { GameMenu } from "./GameMenu";
 import { GameOverModal } from "./GameOverModal";
 import { formatGameResult } from "./gameResultText";
+import { MoveHistoryPanel } from "./MoveHistoryPanel";
 import { PlayerCard } from "./PlayerCard";
 import srOnly from "./srOnly.module.css";
 import { TitleScreen } from "./TitleScreen";
@@ -141,6 +143,9 @@ export function GameContainer() {
                 label={sideLabel(playerColor(), store.state.config)}
               />
             </div>
+            <div class={styles.historySlot}>
+              <MoveHistoryPanel history={store.state.history} />
+            </div>
           </div>
           <div class={styles.menuSlot}>
             <GameMenu
@@ -157,8 +162,16 @@ export function GameContainer() {
               }
               onNewGame={restartGame}
               onFlip={toggleFlip}
+              onUndo={store.undo}
+              onOfferDraw={store.offerDraw}
+              getPgn={store.getPgn}
             />
           </div>
+          <DrawOfferDialog
+            open={store.state.drawOffer}
+            onAccept={store.acceptDraw}
+            onDecline={store.declineDraw}
+          />
           <GameOverModal
             status={store.state.status}
             onReturnToTitle={returnToTitle}

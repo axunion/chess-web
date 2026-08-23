@@ -203,6 +203,124 @@ describe("gameStore (PvP)", () => {
 
       expect(store.state.status).toEqual({ kind: "resigned", winner: "b" });
     });
+
+    it("clears a pending draw offer defensively, same as newGame/boot/undo", () => {
+      store.offerDraw();
+
+      store.resign("w");
+
+      expect(store.state.drawOffer).toBe(false);
+    });
+  });
+
+  describe("undo (pvp)", () => {
+    it("takes back a single ply and clears interaction state", () => {
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      store.tapSquare("e7");
+      store.tapSquare("e5");
+
+      store.undo();
+
+      expect(store.state.history.map((e) => e.san)).toEqual(["e4"]);
+      expect(store.state.turn).toBe("b");
+      expect(store.state.lastMove).toEqual({ from: "e2", to: "e4" });
+      expect(store.state.selected).toBeNull();
+      expect(store.state.legalTargets).toEqual([]);
+    });
+
+    it("is a no-op with no moves played", () => {
+      store.undo();
+
+      expect(store.state.history).toHaveLength(0);
+      expect(store.state.turn).toBe("w");
+    });
+
+    it("is a no-op once the game is over", () => {
+      playFoolsMate(store);
+
+      store.undo();
+
+      expect(store.state.status.kind).toBe("checkmate");
+      expect(store.state.history).toHaveLength(4);
+    });
+
+    it("is a no-op while a promotion is pending", () => {
+      playToPromotion(store);
+      store.tapSquare("g7");
+      store.tapSquare("h8");
+      const historyLengthBefore = store.state.history.length;
+
+      store.undo();
+
+      expect(store.state.pendingPromotion).toEqual({ from: "g7", to: "h8" });
+      expect(store.state.history).toHaveLength(historyLengthBefore);
+    });
+
+    it("clears a pending draw offer", () => {
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      store.offerDraw();
+      expect(store.state.drawOffer).toBe(true);
+
+      store.undo();
+
+      expect(store.state.drawOffer).toBe(false);
+    });
+  });
+
+  describe("draw offer (pvp)", () => {
+    it("offerDraw sets drawOffer, acceptDraw ends the game as a draw by agreement", () => {
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+
+      store.offerDraw();
+      expect(store.state.drawOffer).toBe(true);
+
+      store.acceptDraw();
+
+      expect(store.state.status).toEqual({ kind: "draw", reason: "agreement" });
+      expect(store.state.drawOffer).toBe(false);
+    });
+
+    it("declineDraw clears the offer without ending the game", () => {
+      store.offerDraw();
+
+      store.declineDraw();
+
+      expect(store.state.drawOffer).toBe(false);
+      expect(store.state.status.kind).toBe("playing");
+    });
+
+    it("offerDraw is a no-op once already offered or once the game is over", () => {
+      store.offerDraw();
+      store.offerDraw();
+      expect(store.state.drawOffer).toBe(true);
+
+      store.declineDraw();
+      store.resign("w");
+      store.offerDraw();
+
+      expect(store.state.drawOffer).toBe(false);
+    });
+
+    it("acceptDraw is a no-op without a pending offer", () => {
+      store.acceptDraw();
+
+      expect(store.state.status.kind).toBe("playing");
+    });
+  });
+
+  describe("getPgn", () => {
+    it("reflects moves played, and the truncated pgn after undo", () => {
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      expect(store.getPgn()).toContain("e4");
+
+      store.undo();
+
+      expect(store.getPgn()).not.toContain("e4");
+    });
   });
 });
 

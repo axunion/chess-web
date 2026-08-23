@@ -31,6 +31,23 @@ describe("persistence/storage", () => {
     expect(loadGame()).toEqual(resigned);
   });
 
+  it("round-trips a drawn-by-agreement game (drawAgreed set)", () => {
+    const drawn = { ...SAMPLE, drawAgreed: true };
+    saveGame(drawn);
+
+    expect(loadGame()).toEqual(drawn);
+  });
+
+  it("returns null and clears the key when drawAgreed is present but not a boolean", () => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ ...SAMPLE, drawAgreed: "yes" }),
+    );
+
+    expect(loadGame()).toBeNull();
+    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
+  });
+
   it("returns null when nothing is saved", () => {
     expect(loadGame()).toBeNull();
   });

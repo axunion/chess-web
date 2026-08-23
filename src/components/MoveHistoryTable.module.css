@@ -1,0 +1,58 @@
+.scrollArea {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem 1.25rem 1.25rem;
+}
+
+.scrollArea:focus-visible {
+  outline: 0.15rem solid var(--accent);
+  outline-offset: -0.15rem;
+}
+
+.empty {
+  margin: 0;
+  padding: 0.5rem 0;
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-size: 0.9rem;
+  font-style: italic;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-ui);
+  font-size: 1rem;
+  color: var(--ink);
+}
+
+.table tbody tr:nth-child(even) {
+  background: var(--surface);
+}
+
+.columnHeader {
+  padding: 0.3rem 0.5rem;
+  color: var(--ink-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.moveNumber {
+  width: 2.5rem;
+  padding: 0.35rem 0.5rem;
+  color: var(--ink-muted);
+}
+
+.san {
+  padding: 0.35rem 0.75rem 0.35rem 0.5rem;
+}
+
+.current {
+  color: var(--accent);
+  font-weight: 700;
+}

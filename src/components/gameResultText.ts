@@ -7,6 +7,7 @@ const DRAW_REASON_TEXT: Record<
   threefold: "Threefold repetition",
   insufficient: "Insufficient material",
   "fifty-move": "Fifty-move rule",
+  agreement: "Agreement",
 };
 
 /**

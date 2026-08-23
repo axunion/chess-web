@@ -1,0 +1,6 @@
+.declineButton,
+.acceptButton {
+  padding: 0.45rem 0.9rem;
+  border-radius: var(--radius);
+  cursor: pointer;
+}

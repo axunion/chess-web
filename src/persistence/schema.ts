@@ -10,6 +10,8 @@ export interface SavedGameV1 {
   pgn: string; // full move history — restore by replaying
   /** Only set when the game ended by resignation (not representable in PGN). */
   resignedBy?: Color;
+  /** Only set when the game ended by a mutually agreed draw (not representable in PGN). Mutually exclusive with resignedBy. */
+  drawAgreed?: boolean;
 }
 
 const VALID_DIFFICULTIES = new Set<string>(DIFFICULTIES);
@@ -38,6 +40,9 @@ export function isSavedGameV1(value: unknown): value is SavedGameV1 {
   if (typeof v.pgn !== "string") return false;
   if (!isGameConfig(v.config)) return false;
   if (v.resignedBy !== undefined && !COLORS.has(v.resignedBy as string)) {
+    return false;
+  }
+  if (v.drawAgreed !== undefined && typeof v.drawAgreed !== "boolean") {
     return false;
   }
   return true;

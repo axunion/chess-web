@@ -323,6 +323,93 @@ describe("gameStore (CPU)", () => {
     });
   });
 
+  describe("undo", () => {
+    it("takes back both the human's move and the engine's reply, landing back on the human's turn", async () => {
+      const engine = createControllableEngine();
+      const store = createGameStore(() => engine.adapter);
+      store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "w" });
+      engine.resolveInit();
+      await flushAsync();
+
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      await flushAsync();
+      engine.resolveBestMove("e7e5");
+      await flushAsync();
+      expect(store.state.history).toHaveLength(2);
+
+      store.undo();
+
+      expect(store.state.history).toHaveLength(0);
+      expect(store.state.turn).toBe("w");
+      // No new engine request — undo landed back on the human's own turn.
+      expect(engine.bestMoveCalls).toHaveLength(1);
+    });
+
+    it("is a no-op while the engine is thinking or loading", async () => {
+      const engine = createControllableEngine();
+      const store = createGameStore(() => engine.adapter);
+      store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "w" });
+      engine.resolveInit();
+      await flushAsync();
+
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      await flushAsync();
+      expect(store.state.engine).toBe("thinking");
+
+      store.undo();
+
+      expect(store.state.history).toHaveLength(1);
+    });
+
+    it("takes back only the human's move when the engine errored before replying", async () => {
+      const engine = createControllableEngine();
+      const store = createGameStore(() => engine.adapter);
+      store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "w" });
+      engine.resolveInit();
+      await flushAsync();
+
+      store.tapSquare("e2");
+      store.tapSquare("e4");
+      await flushAsync();
+      engine.rejectBestMove(new Error("engine crashed"));
+      await flushAsync();
+      expect(store.state.engine).toBe("error");
+
+      store.undo();
+
+      expect(store.state.history).toHaveLength(0);
+      expect(store.state.turn).toBe("w");
+      // A stale "error" must not survive undo — the human can move right
+      // away, but EngineStatus would otherwise keep showing the error/Retry
+      // banner over a perfectly playable position.
+      expect(store.state.engine).toBe("off");
+    });
+
+    it("regression: re-requests the engine's move after undoing a cpu-plays-first opening move, instead of stalling", async () => {
+      const engine = createControllableEngine();
+      const store = createGameStore(() => engine.adapter);
+      store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "b" });
+      engine.resolveInit();
+      await flushAsync();
+      engine.resolveBestMove("e2e4");
+      await flushAsync();
+      expect(store.state.history).toHaveLength(1);
+      expect(store.state.turn).toBe("b");
+
+      store.undo();
+      await flushAsync();
+
+      expect(store.state.history).toHaveLength(0);
+      expect(store.state.turn).toBe("w");
+      // The engine must be re-requested for its (now-empty-board) move, not
+      // left idle with the human permanently unable to act.
+      expect(store.state.engine).toBe("thinking");
+      expect(engine.bestMoveCalls).toHaveLength(2);
+    });
+  });
+
   describe("boot() with a saved cpu-mode game (spec/02 §6)", () => {
     it("resumes engine thinking on boot() when restored mid-CPU-turn, and applies the CPU's move once bestMove() resolves", async () => {
       // Human (white) played e4; it's the CPU's (black's) turn — as if the

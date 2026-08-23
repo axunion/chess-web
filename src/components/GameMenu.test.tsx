@@ -25,6 +25,9 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={vi.fn()}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -49,6 +52,9 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={vi.fn()}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -67,6 +73,9 @@ describe("GameMenu", () => {
         onResign={onResign}
         onNewGame={vi.fn()}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -89,6 +98,9 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={vi.fn()}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -113,6 +125,9 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={vi.fn()}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -132,6 +147,9 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={vi.fn()}
         onFlip={onFlip}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -151,6 +169,9 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={onNewGame}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
@@ -173,10 +194,131 @@ describe("GameMenu", () => {
         onResign={vi.fn()}
         onNewGame={vi.fn()}
         onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
       />
     ));
 
     openMenu();
     expect(screen.getByText("New Game")).not.toBeNull();
+  });
+
+  it("disables Undo once the game is over", () => {
+    const store = createGameStore();
+    store.resign("w");
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
+      />
+    ));
+
+    openMenu();
+    expect(
+      screen
+        .getByText("Undo")
+        .closest("[aria-disabled]")
+        ?.getAttribute("aria-disabled"),
+    ).toBe("true");
+  });
+
+  it("offers Offer Draw only in pvp games that are still playing", () => {
+    const store = createGameStore();
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
+      />
+    ));
+
+    openMenu();
+    expect(screen.getByText("Offer Draw")).not.toBeNull();
+  });
+
+  it("calls onUndo directly, without a confirmation dialog, when Undo is enabled", () => {
+    const onUndo = vi.fn();
+    const store = createGameStore();
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
+        onUndo={onUndo}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
+      />
+    ));
+
+    openMenu();
+    selectMenuItem("Undo");
+    expect(onUndo).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("alertdialog")).toBeNull();
+  });
+
+  it("calls onOfferDraw directly when Offer Draw is selected", () => {
+    const onOfferDraw = vi.fn();
+    const store = createGameStore();
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={onOfferDraw}
+        getPgn={store.getPgn}
+      />
+    ));
+
+    openMenu();
+    selectMenuItem("Offer Draw");
+    expect(onOfferDraw).toHaveBeenCalledTimes(1);
+  });
+
+  it("copies the current PGN to the clipboard when Copy PGN is selected", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", {
+      value: { writeText },
+      configurable: true,
+    });
+    const store = createGameStore();
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+    render(() => (
+      <GameMenu
+        state={store.state}
+        onQuit={vi.fn()}
+        onResign={vi.fn()}
+        onNewGame={vi.fn()}
+        onFlip={vi.fn()}
+        onUndo={vi.fn()}
+        onOfferDraw={vi.fn()}
+        getPgn={store.getPgn}
+      />
+    ));
+
+    openMenu();
+    selectMenuItem("Copy PGN");
+
+    expect(writeText).toHaveBeenCalledWith(store.getPgn());
+    expect(writeText.mock.calls[0][0]).toContain("e4");
   });
 });

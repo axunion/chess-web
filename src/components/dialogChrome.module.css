@@ -40,3 +40,39 @@
   color: var(--surface-raised);
   cursor: pointer;
 }
+
+/* Shared prompt-box chrome for AlertDialog.Content and its title/description/actions row. */
+.content {
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-panel);
+  padding: 1.5rem;
+  max-width: 20rem;
+}
+
+.content[data-expanded] {
+  animation: var(--kf-pop-in) var(--dur-fade) var(--ease-move);
+}
+
+.content[data-closed] {
+  animation: var(--kf-pop-out) var(--dur-fade) var(--ease-move);
+}
+
+.title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  color: var(--ink);
+  font-size: 1.1rem;
+}
+
+.description {
+  margin: 0 0 1rem;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
