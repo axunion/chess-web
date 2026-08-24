@@ -23,7 +23,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -50,7 +49,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -71,7 +69,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={onResign}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -96,7 +93,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={onQuit}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -123,7 +119,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={onQuit}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -145,7 +140,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={onFlip}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -159,51 +153,6 @@ describe("GameMenu", () => {
     expect(screen.queryByRole("alertdialog")).toBeNull();
   });
 
-  it("asks for confirmation before starting a new game, even while still playing", () => {
-    const onNewGame = vi.fn();
-    const store = createGameStore();
-    render(() => (
-      <GameMenu
-        state={store.state}
-        onQuit={vi.fn()}
-        onResign={vi.fn()}
-        onNewGame={onNewGame}
-        onFlip={vi.fn()}
-        onUndo={vi.fn()}
-        onOfferDraw={vi.fn()}
-        getPgn={store.getPgn}
-      />
-    ));
-
-    openMenu();
-    selectMenuItem("New Game");
-    expect(screen.getByText("Start a new game?")).not.toBeNull();
-    expect(onNewGame).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getAllByText("New Game").at(-1) as HTMLElement);
-    expect(onNewGame).toHaveBeenCalledTimes(1);
-  });
-
-  it("offers New Game even after the game is over", () => {
-    const store = createGameStore();
-    store.resign("w");
-    render(() => (
-      <GameMenu
-        state={store.state}
-        onQuit={vi.fn()}
-        onResign={vi.fn()}
-        onNewGame={vi.fn()}
-        onFlip={vi.fn()}
-        onUndo={vi.fn()}
-        onOfferDraw={vi.fn()}
-        getPgn={store.getPgn}
-      />
-    ));
-
-    openMenu();
-    expect(screen.getByText("New Game")).not.toBeNull();
-  });
-
   it("disables Undo once the game is over", () => {
     const store = createGameStore();
     store.resign("w");
@@ -212,7 +161,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -236,7 +184,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}
@@ -258,7 +205,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={onUndo}
         onOfferDraw={vi.fn()}
@@ -280,7 +226,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={onOfferDraw}
@@ -307,7 +252,6 @@ describe("GameMenu", () => {
         state={store.state}
         onQuit={vi.fn()}
         onResign={vi.fn()}
-        onNewGame={vi.fn()}
         onFlip={vi.fn()}
         onUndo={vi.fn()}
         onOfferDraw={vi.fn()}

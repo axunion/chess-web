@@ -8,7 +8,6 @@ import {
   Handshake,
   History,
   Home,
-  RotateCcw,
   Undo2,
 } from "lucide-solid";
 import { createSignal, type JSX, onCleanup, Show } from "solid-js";
@@ -22,7 +21,6 @@ interface GameMenuProps {
   state: GameState;
   onQuit: () => void;
   onResign: () => void;
-  onNewGame: () => void;
   onFlip: () => void;
   onUndo: () => void;
   onOfferDraw: () => void;
@@ -40,7 +38,7 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
 }
 
-/** Shared shell for the Resign/Quit/New Game confirmation prompts. */
+/** Shared shell for the Resign/Quit confirmation prompts. */
 function ConfirmDialog(props: ConfirmDialogProps) {
   return (
     <AlertDialog open={props.open} onOpenChange={props.onOpenChange}>
@@ -77,7 +75,7 @@ function ConfirmDialog(props: ConfirmDialogProps) {
 }
 
 /** Overflow menu for in-game actions, floating in the play area's top-right corner. */
-type ConfirmAction = "resign" | "quit" | "newGame";
+type ConfirmAction = "resign" | "quit";
 
 /** How long the "Copied" feedback stays visible after Copy PGN is selected. */
 const COPIED_FEEDBACK_MS = 1500;
@@ -96,7 +94,6 @@ export function GameMenu(props: GameMenuProps) {
   function handleConfirm(action: ConfirmAction): void {
     setConfirmAction(null);
     if (action === "resign") props.onResign();
-    else if (action === "newGame") props.onNewGame();
     else props.onQuit();
   }
 
@@ -172,13 +169,6 @@ export function GameMenu(props: GameMenuProps) {
               </Show>
               <DropdownMenu.Item
                 class={styles.menuItem}
-                onSelect={() => setConfirmAction("newGame")}
-              >
-                <RotateCcw size={16} />
-                New Game
-              </DropdownMenu.Item>
-              <DropdownMenu.Item
-                class={styles.menuItem}
                 onSelect={() => setConfirmAction("quit")}
               >
                 <Home size={16} />
@@ -203,17 +193,6 @@ export function GameMenu(props: GameMenuProps) {
         confirmIcon={<Flag size={16} />}
         confirmClass={styles.confirmResignButton}
         onConfirm={() => handleConfirm("resign")}
-      />
-
-      <ConfirmDialog
-        open={confirmAction() === "newGame"}
-        onOpenChange={(open) => !open && setConfirmAction(null)}
-        title="Start a new game?"
-        description="The current game will be discarded."
-        confirmLabel="New Game"
-        confirmIcon={<RotateCcw size={16} />}
-        confirmClass={`${styles.confirmNewGameButton} ${chrome.accentButton}`}
-        onConfirm={() => handleConfirm("newGame")}
       />
 
       <ConfirmDialog

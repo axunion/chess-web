@@ -160,7 +160,6 @@ export function GameContainer() {
                     : store.state.turn,
                 )
               }
-              onNewGame={restartGame}
               onFlip={toggleFlip}
               onUndo={store.undo}
               onOfferDraw={store.offerDraw}
