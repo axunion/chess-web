@@ -1,4 +1,4 @@
-import { createEffect, For, on, onMount, Show } from "solid-js";
+import { createEffect, For, on, Show } from "solid-js";
 import type { HistoryEntry } from "../game/types";
 import styles from "./MoveHistoryTable.module.css";
 
@@ -43,8 +43,7 @@ export function MoveHistoryTable(props: MoveHistoryTableProps) {
     if (scrollRef) scrollRef.scrollTop = scrollRef.scrollHeight;
   }
 
-  onMount(scrollToBottom);
-  createEffect(on(() => props.history.length, scrollToBottom, { defer: true }));
+  createEffect(on(() => props.history.length, scrollToBottom));
 
   return (
     <section

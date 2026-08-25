@@ -54,6 +54,12 @@ export interface GameConfig {
 
 export type EngineState = "off" | "loading" | "ready" | "thinking" | "error";
 
+/** Engine's evaluation of the current position, normalized to White's
+ * perspective (positive favors White). */
+export type EngineEvaluation =
+  | { kind: "cp"; value: number }
+  | { kind: "mate"; value: number };
+
 export interface GameState {
   config: GameConfig;
   fen: string;
@@ -68,6 +74,8 @@ export interface GameState {
   pendingPromotion: { from: Square; to: Square } | null;
   lastMove: { from: Square; to: Square } | null;
   engine: EngineState;
+  /** Latest engine evaluation (cpu mode only). Never persisted. */
+  evaluation: EngineEvaluation | null;
   /** Pending pvp draw offer awaiting the other player's response. Never persisted. */
   drawOffer: boolean;
 }

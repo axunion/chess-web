@@ -1,0 +1,65 @@
+/* Deliberately no left/right inset here — full width, flush with the
+   board/cards below it at every viewport, same as every other row in
+   .layout. GameMenu's floating trigger button (.menuSlot in
+   GameContainer.module.css) only ever shares vertical space with this row
+   at the desktop breakpoint, and is cleared there with a top margin on
+   .evalSlot itself (see GameContainer.module.css's desktop @media block) —
+   not by carving asymmetric dead space out of the bar. */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--font-ui);
+}
+
+.sideLabel {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.bar {
+  position: relative;
+  display: flex;
+  height: 0.75rem;
+  border-radius: calc(var(--radius) - 4px);
+  overflow: hidden;
+  box-shadow: var(--shadow-frame);
+}
+
+/* Fixed center reference line (independent of the fill split below it) so
+   "even" has a visible landmark — without it, judging which side is ahead
+   at a glance meant comparing two edge-to-edge fills with no anchor. */
+.bar::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 50%;
+  width: 1px;
+  background: rgb(0 0 0 / 20%);
+}
+
+.black {
+  background: var(--surface);
+  transition: width var(--dur-move) var(--ease-move);
+}
+
+.white {
+  background: var(--ink);
+  transition: width var(--dur-move) var(--ease-move);
+}

@@ -11,6 +11,7 @@ import { Chessboard } from "./Chessboard";
 import { capitalize } from "./capitalize";
 import { DrawOfferDialog } from "./DrawOfferDialog";
 import { EngineStatus } from "./EngineStatus";
+import { EvalBar } from "./EvalBar";
 import styles from "./GameContainer.module.css";
 import { GameMenu } from "./GameMenu";
 import { GameOverModal } from "./GameOverModal";
@@ -70,6 +71,7 @@ export function GameContainer() {
     capturedBy(store.state.history, opponentColor());
   const selfCaptured = () => capturedBy(store.state.history, playerColor());
   const isPlaying = () => store.state.status.kind === "playing";
+  const isCpu = () => store.state.config.mode === "cpu";
 
   function returnToTitle(): void {
     store.abandonGame();
@@ -106,7 +108,17 @@ export function GameContainer() {
               {formatGameResult(store.state.status)}
             </Show>
           </div>
-          <div class={styles.layout}>
+          <div
+            class={styles.layout}
+            classList={{
+              [styles.hasEval]: isCpu(),
+            }}
+          >
+            <Show when={isCpu()}>
+              <div class={styles.evalSlot}>
+                <EvalBar evaluation={store.state.evaluation} />
+              </div>
+            </Show>
             {/* Opponent's card (their captures) is shown above the board,
                 the player's own card below — regardless of who's playing which
                 color (spec/04 §3). */}

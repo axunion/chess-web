@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { EngineAdapter } from "../engine/engineAdapter";
-import type { Difficulty } from "../game/types";
+import type { BestMoveResult, EngineAdapter } from "../engine/engineAdapter";
+import type { Difficulty, EngineEvaluation } from "../game/types";
 import { STORAGE_KEY } from "../persistence/schema";
 import { saveGame } from "../persistence/storage";
 import { createGameStore } from "./gameStore";
@@ -34,7 +34,7 @@ function flushAsync(): Promise<void> {
 function createControllableEngine() {
   let initDeferred = createDeferred<void>();
   let initSettledOk = false;
-  let bestMoveDeferred: Deferred<string> | null = null;
+  let bestMoveDeferred: Deferred<BestMoveResult> | null = null;
 
   const bestMoveCalls: { fen: string; difficulty: Difficulty }[] = [];
   let initCallCount = 0;
@@ -47,7 +47,7 @@ function createControllableEngine() {
     },
     bestMove: (fen, difficulty) => {
       bestMoveCalls.push({ fen, difficulty });
-      bestMoveDeferred = createDeferred<string>();
+      bestMoveDeferred = createDeferred<BestMoveResult>();
       return bestMoveDeferred.promise;
     },
     dispose: () => {
@@ -72,8 +72,18 @@ function createControllableEngine() {
       initDeferred.reject(err);
       initDeferred = createDeferred<void>(); // fresh deferred for a future retry
     },
-    resolveBestMove(uci: string): void {
-      bestMoveDeferred?.resolve(uci);
+    resolveBestMove(
+      uci: string,
+      evalCp: number | null = null,
+      mateIn: number | null = null,
+    ): void {
+      const evaluation: EngineEvaluation | null =
+        mateIn !== null
+          ? { kind: "mate", value: mateIn }
+          : evalCp !== null
+            ? { kind: "cp", value: evalCp }
+            : null;
+      bestMoveDeferred?.resolve({ move: uci, evaluation });
     },
     rejectBestMove(err: unknown): void {
       bestMoveDeferred?.reject(err);
@@ -111,12 +121,76 @@ describe("gameStore (CPU)", () => {
       difficulty: "normal",
     });
 
-    engine.resolveBestMove("e7e5");
+    engine.resolveBestMove("e7e5", 24, null);
     await flushAsync();
 
     expect(store.state.history.map((e) => e.san)).toEqual(["e4", "e5"]);
     expect(store.state.turn).toBe("w");
     expect(store.state.engine).toBe("ready");
+    expect(store.state.evaluation).toEqual({ kind: "cp", value: 24 });
+  });
+
+  it("clears evaluation as soon as the human moves, before the engine's reply arrives", async () => {
+    const engine = createControllableEngine();
+    const store = createGameStore(() => engine.adapter);
+    store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "w" });
+    engine.resolveInit();
+    await flushAsync();
+
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+    await flushAsync();
+    engine.resolveBestMove("e7e5", 24, null);
+    await flushAsync();
+    expect(store.state.evaluation).toEqual({ kind: "cp", value: 24 });
+
+    store.tapSquare("g1");
+    store.tapSquare("f3");
+    await flushAsync();
+
+    // The engine hasn't replied yet, but the old evaluation described the
+    // pre-Nf3 position and must not linger on screen.
+    expect(store.state.engine).toBe("thinking");
+    expect(store.state.evaluation).toBeNull();
+  });
+
+  it("clears evaluation when the human's move ends the game (checkmate), not just when it hands the turn to the engine", async () => {
+    const engine = createControllableEngine();
+    const store = createGameStore(() => engine.adapter);
+    // Human plays black so the engine (white) can blunder into Fool's mate:
+    // 1. f3 e5 2. g4 Qh4#.
+    store.newGame({ mode: "cpu", difficulty: "normal", playerColor: "b" });
+    engine.resolveInit();
+    await flushAsync();
+    engine.resolveBestMove("f2f3", 0, null);
+    await flushAsync();
+
+    store.tapSquare("e7");
+    store.tapSquare("e5");
+    await flushAsync();
+    engine.resolveBestMove("g2g4", -15, null);
+    await flushAsync();
+    expect(store.state.evaluation).toEqual({ kind: "cp", value: -15 });
+
+    store.tapSquare("d8");
+    store.tapSquare("h4"); // Qh4# — delivered by the human, ends the game
+    await flushAsync();
+
+    expect(store.state.status.kind).toBe("checkmate");
+    // The engine never re-evaluates this position (the game is over), so
+    // the pre-Qh4# evaluation must not linger behind GameOverModal.
+    expect(store.state.evaluation).toBeNull();
+  });
+
+  it("keeps evaluation null throughout a pvp game", async () => {
+    const engine = createControllableEngine();
+    const store = createGameStore(() => engine.adapter);
+    store.newGame({ mode: "pvp", difficulty: "normal", playerColor: "w" });
+
+    store.tapSquare("e2");
+    store.tapSquare("e4");
+
+    expect(store.state.evaluation).toBeNull();
   });
 
   it("warms up the engine immediately and moves first when the CPU plays white", async () => {
@@ -334,9 +408,10 @@ describe("gameStore (CPU)", () => {
       store.tapSquare("e2");
       store.tapSquare("e4");
       await flushAsync();
-      engine.resolveBestMove("e7e5");
+      engine.resolveBestMove("e7e5", 18, null);
       await flushAsync();
       expect(store.state.history).toHaveLength(2);
+      expect(store.state.evaluation).not.toBeNull();
 
       store.undo();
 
@@ -344,6 +419,8 @@ describe("gameStore (CPU)", () => {
       expect(store.state.turn).toBe("w");
       // No new engine request — undo landed back on the human's own turn.
       expect(engine.bestMoveCalls).toHaveLength(1);
+      // Undo must not leave the previous move's evaluation on screen.
+      expect(store.state.evaluation).toBeNull();
     });
 
     it("is a no-op while the engine is thinking or loading", async () => {

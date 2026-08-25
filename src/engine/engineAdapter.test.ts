@@ -143,7 +143,10 @@ describe("engineAdapter.bestMove()", () => {
     worker.emitMessage("info depth 1 score cp 10");
     worker.emitMessage("bestmove e2e4 ponder e7e5");
 
-    await expect(movePromise).resolves.toBe("e2e4");
+    await expect(movePromise).resolves.toEqual({
+      move: "e2e4",
+      evaluation: { kind: "cp", value: 10 },
+    });
   });
 
   it("sends UCI_LimitStrength false and Skill Level for a skill-tier difficulty", async () => {
@@ -163,7 +166,7 @@ describe("engineAdapter.bestMove()", () => {
     ).toBe(false);
 
     worker.emitMessage("bestmove e2e4");
-    await expect(movePromise).resolves.toBe("e2e4");
+    await expect(movePromise).resolves.toMatchObject({ move: "e2e4" });
   });
 
   it("resends UCI_LimitStrength on every search, never carrying it over between games", async () => {
@@ -187,7 +190,76 @@ describe("engineAdapter.bestMove()", () => {
     expect(secondCommands).toContain("setoption name Skill Level value 0");
 
     worker.emitMessage("bestmove d2d4");
-    await expect(second).resolves.toBe("d2d4");
+    await expect(second).resolves.toMatchObject({ move: "d2d4" });
+  });
+
+  it("normalizes score to White's perspective when Black is to move", async () => {
+    const { adapter, worker } = await initializedAdapter();
+
+    const movePromise = adapter.bestMove(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1",
+      "normal",
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    worker.emitMessage("info depth 10 score cp 40");
+    worker.emitMessage("bestmove e7e5");
+
+    await expect(movePromise).resolves.toEqual({
+      move: "e7e5",
+      evaluation: { kind: "cp", value: -40 },
+    });
+  });
+
+  it("reports mateIn normalized to White's perspective", async () => {
+    const { adapter, worker } = await initializedAdapter();
+
+    const movePromise = adapter.bestMove(
+      "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR b KQkq - 0 1",
+      "normal",
+    );
+    await Promise.resolve();
+    await Promise.resolve();
+
+    worker.emitMessage("info depth 3 score mate 2");
+    worker.emitMessage("bestmove d8h4");
+
+    await expect(movePromise).resolves.toEqual({
+      move: "d8h4",
+      evaluation: { kind: "mate", value: -2 },
+    });
+  });
+
+  it("resolves with a null evaluation when the engine never sent a score line", async () => {
+    const { adapter, worker } = await initializedAdapter();
+
+    const movePromise = adapter.bestMove("fen", "easy");
+    await Promise.resolve();
+    await Promise.resolve();
+    worker.emitMessage("bestmove e2e4");
+
+    await expect(movePromise).resolves.toEqual({
+      move: "e2e4",
+      evaluation: null,
+    });
+  });
+
+  it("ignores upperbound/lowerbound lines, keeping the last exact score", async () => {
+    const { adapter, worker } = await initializedAdapter();
+
+    const movePromise = adapter.bestMove("fen", "easy");
+    await Promise.resolve();
+    await Promise.resolve();
+
+    worker.emitMessage("info depth 8 score cp 35 pv e2e4");
+    worker.emitMessage("info depth 9 score cp 120 upperbound");
+    worker.emitMessage("bestmove e2e4");
+
+    await expect(movePromise).resolves.toEqual({
+      move: "e2e4",
+      evaluation: { kind: "cp", value: 35 },
+    });
   });
 
   it("rejects when the engine reports bestmove (none)", async () => {
@@ -236,7 +308,7 @@ describe("engineAdapter.bestMove()", () => {
     await Promise.resolve();
     await Promise.resolve();
     worker.emitMessage("bestmove d2d4");
-    await expect(second).resolves.toBe("d2d4");
+    await expect(second).resolves.toMatchObject({ move: "d2d4" });
   });
 
   it("rejects the pending call and terminates the worker when the worker crashes mid-search", async () => {

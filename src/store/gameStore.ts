@@ -101,6 +101,7 @@ export function createGameStore(
     pendingPromotion: null,
     lastMove: null,
     engine: "off",
+    evaluation: null,
     drawOffer: false,
   });
 
@@ -168,6 +169,13 @@ export function createGameStore(
           s.selected = null;
           s.legalTargets = [];
           s.pendingPromotion = null;
+          // Every applied move invalidates the evaluation shown for the
+          // prior position — requestEngineMove() re-populates it right
+          // after applying the engine's own move (see below); any other
+          // move (a human's, including one that ends the game) simply
+          // leaves it cleared until the engine catches up. Same staleness
+          // undo() guards against.
+          s.evaluation = null;
         }),
       );
     });
@@ -199,6 +207,7 @@ export function createGameStore(
       pendingPromotion: null,
       lastMove: null,
       engine: "off",
+      evaluation: null,
       drawOffer: false,
     });
     persist();
@@ -258,6 +267,7 @@ export function createGameStore(
       pendingPromotion: null,
       lastMove: lastEntry ? { from: lastEntry.from, to: lastEntry.to } : null,
       engine: "off",
+      evaluation: null,
       drawOffer: false,
     });
 
@@ -376,6 +386,9 @@ export function createGameStore(
       legalTargets: [],
       pendingPromotion: null,
       lastMove: lastEntry ? { from: lastEntry.from, to: lastEntry.to } : null,
+      // Undoing back to a position the engine hasn't (re-)evaluated yet
+      // must not leave the previous move's evaluation on screen.
+      evaluation: null,
       drawOffer: false,
       // A stale "error" must not survive undo (recovering from that state is
       // exactly what this is for — see the isInputLocked() comment above);
@@ -462,8 +475,8 @@ export function createGameStore(
         setState("engine", "thinking");
         return adapter.bestMove(fen, difficulty);
       })
-      .then((uci) => {
-        if (uci === undefined) return; // superseded before bestMove() started
+      .then((result) => {
+        if (result === undefined) return; // superseded before bestMove() started
         if (requestId !== gameId) return; // superseded by a new game entirely
         // Discard a response that arrives for a game that has since ended
         // (e.g. resignation mid-think) — but still bring `engine` out of
@@ -471,7 +484,11 @@ export function createGameStore(
         // discard too, not just on an applied move).
         setState("engine", "ready");
         if (state.status.kind !== "playing") return;
-        afterMove(chessGame.moveUci(uci));
+        // afterMove() unconditionally clears `evaluation` as part of
+        // applying the new position — set it after, not before, so the
+        // engine's own fresh evaluation survives that reset.
+        afterMove(chessGame.moveUci(result.move));
+        setState("evaluation", result.evaluation);
       })
       .catch((err: unknown) => {
         if (requestId !== gameId) return;

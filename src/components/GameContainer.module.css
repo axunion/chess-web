@@ -5,7 +5,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 2rem;
+  padding: 1.25rem;
 }
 
 /* Same faint checkerboard texture as TitleScreen.module.css .board — ties the
@@ -52,6 +52,36 @@
   max-width: 560px;
 }
 
+/* cpu-mode-only row for EvalBar, added above everything else — a full-width
+   strip rather than a sidebar next to Chessboard, so it never competes with
+   the board's own width/aspect-ratio sizing (see EvalBar.tsx's doc comment).
+   A separate .hasEval variant (rather than always reserving the row) so pvp
+   games don't carry an empty gap where the bar would be. */
+.layout.hasEval {
+  grid-template-areas:
+    "eval"
+    "opponent"
+    "board"
+    "self";
+}
+
+/* margin-top clears GameMenu's floating trigger button (.menuSlot below:
+   position: absolute in .container's top-right corner), which — now that
+   .evalSlot is the very first row in .layout — would otherwise sit right
+   on top of it. Pushing the row down (not insetting its sides) keeps it
+   full width and flush with the board/cards below at every viewport,
+   avoiding the left/right asymmetry a horizontal fix would need.
+   Mobile trigger bottom = .menuSlot's top (0.75rem) + its size (1.75rem) =
+   2.5rem from .container's top; .container's own padding (1.25rem) already
+   covers the first 1.25rem of that, leaving 1.25rem to clear — 2rem below
+   adds real breathing room rather than the bare minimum (a tighter margin
+   here previously still overlapped in a real browser despite measuring
+   clear in headless testing, so this errs generous on purpose). */
+.evalSlot {
+  grid-area: eval;
+  margin-top: 2rem;
+}
+
 /* Desktop-only move-history sidebar panel — see the @media block below for
    its placement and how it replaces .layout's old spacer rows. */
 .historySlot {
@@ -85,21 +115,21 @@
    to the opponent card the way an earlier version was. Anchored to
    .container itself (not .layout or a player card) so it doesn't ride
    along with either card's position, and offset by less than .container's
-   own padding (2rem) so it sits closer to the real screen edge than the
+   own padding (1.25rem) so it sits closer to the real screen edge than the
    padded play-area content does. Explicit z-index lifts it above both
    .decoration (position: absolute, default stacking) and .layout
    (z-index: 1). */
 .menuSlot {
   position: absolute;
-  top: 1rem;
-  right: 1rem;
+  top: 0.75rem;
+  right: 0.75rem;
   z-index: 2;
 }
 
 @media (min-width: 64rem) {
   .menuSlot {
-    top: 1.5rem;
-    right: 1.5rem;
+    top: 1rem;
+    right: 1rem;
   }
 
   /* Bounds .container to the viewport instead of just flooring it there
@@ -140,5 +170,25 @@
 
   .historySlot {
     display: flex;
+  }
+
+  /* Same cpu-only eval row as the mobile rule, spanning both columns above
+     the board+sidebar group instead of squeezing into either one. */
+  .layout.hasEval {
+    grid-template-rows: auto auto 1fr auto;
+    grid-template-areas:
+      "eval eval"
+      "board opponent"
+      "board history"
+      "board self";
+  }
+
+  /* Desktop's trigger is bigger and lower than mobile's (top/right 1rem,
+     2.1rem square vs. mobile's 0.75rem/1.75rem above) — bottom edge =
+     1rem + 2.1rem = 3.1rem from .container's top, of which its 1.25rem
+     padding covers the first 1.25rem, leaving 1.85rem to clear. 2.5rem
+     below is a deliberately generous margin over that minimum. */
+  .evalSlot {
+    margin-top: 2.5rem;
   }
 }

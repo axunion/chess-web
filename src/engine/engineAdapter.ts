@@ -1,4 +1,4 @@
-import type { Difficulty } from "../game/types";
+import type { Difficulty, EngineEvaluation } from "../game/types";
 import { DIFFICULTY_PRESETS } from "./difficulty";
 import {
   cmdGo,
@@ -9,7 +9,16 @@ import {
   isReadyOk,
   isUciOk,
   parseBestMove,
+  parseInfoScore,
 } from "./uci";
+
+/** Result of a bestMove() search: the chosen move plus the position's
+ * evaluation, normalized to White's perspective (positive favors White).
+ * `evaluation` is null when the engine never sent a score line. */
+export interface BestMoveResult {
+  move: string;
+  evaluation: EngineEvaluation | null;
+}
 
 /**
  * Promise-based facade over the Stockfish Worker's string protocol (see
@@ -18,8 +27,8 @@ import {
 export interface EngineAdapter {
   /** Spawns the worker and completes the UCI handshake. Idempotent. */
   init(): Promise<void>;
-  /** Resolves with a UCI move string (e.g. "e7e8q"). Rejects on timeout/crash/none. */
-  bestMove(fen: string, difficulty: Difficulty): Promise<string>;
+  /** Resolves with the chosen move and its evaluation. Rejects on timeout/crash/none. */
+  bestMove(fen: string, difficulty: Difficulty): Promise<BestMoveResult>;
   /** Terminates the worker. Safe to call at any time. */
   dispose(): void;
 }
@@ -129,12 +138,17 @@ export function createEngineAdapter(
     token: symbol,
     fen: string,
     difficulty: Difficulty,
-    resolve: (move: string) => void,
+    resolve: (result: BestMoveResult) => void,
     reject: (err: Error) => void,
   ): void {
     const preset = DIFFICULTY_PRESETS[difficulty];
     const { movetimeMs } = preset;
     let settled = false;
+    // The engine reports scores from the side to move in `fen`; normalize
+    // to White's perspective so callers never have to know who searched.
+    const sideToMove = fen.split(" ")[1];
+    const sign = sideToMove === "b" ? -1 : 1;
+    let evaluation: EngineEvaluation | null = null;
 
     const timer = setTimeout(() => {
       settle(() => {
@@ -154,13 +168,25 @@ export function createEngineAdapter(
 
     function onMessage(e: MessageEvent): void {
       const line = String(e.data);
-      if (!line.startsWith("bestmove")) return;
+      if (!line.startsWith("bestmove")) {
+        // upperbound/lowerbound lines are aspiration-window fail highs/lows,
+        // not the position's actual score — skip them and keep whatever
+        // exact score was last seen instead of showing a skewed value.
+        if (line.includes("upperbound") || line.includes("lowerbound")) {
+          return;
+        }
+        const score = parseInfoScore(line);
+        if (score) {
+          evaluation = { kind: score.kind, value: sign * score.value };
+        }
+        return;
+      }
       const move = parseBestMove(line);
       settle(() => {
         if (move === null) {
           reject(new Error("EngineAdapter: engine returned no legal move"));
         } else {
-          resolve(move);
+          resolve({ move, evaluation });
         }
       });
     }
@@ -182,9 +208,12 @@ export function createEngineAdapter(
     w.postMessage(cmdGo(movetimeMs));
   }
 
-  function bestMove(fen: string, difficulty: Difficulty): Promise<string> {
+  function bestMove(
+    fen: string,
+    difficulty: Difficulty,
+  ): Promise<BestMoveResult> {
     const token = Symbol("bestMove");
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<BestMoveResult>((resolve, reject) => {
       // Serialization guard (spec/03 §4): stop and reject any request still
       // in flight — whatever phase it's in — before starting a new one.
       if (inFlight) {

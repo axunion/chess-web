@@ -36,8 +36,8 @@
      board) always fits within one viewport height, with zero page scroll,
      in both pvp and cpu games.
 
-     vw term — GameContainer .container padding (2rem) + this .frame's
-     padding (0.75rem), doubled for both sides: 2 * (2rem + 0.75rem) = 5.5rem.
+     vw term — GameContainer .container padding (1.25rem) + this .frame's
+     padding (0.75rem), doubled for both sides: 2 * (1.25rem + 0.75rem) = 4rem.
      Unchanged by the player-card recomposition.
 
      dvh term — every non-board row stacked above/below it on mobile. The old
@@ -46,7 +46,7 @@
      absolutely-positioned above the layout and contributes no flow height),
      but each player card now carries its own panel padding plus a header
      row that didn't exist before:
-       .container padding (top+bottom)              2 * 2rem       = 4rem
+       .container padding (top+bottom)              2 * 1.25rem    = 2.5rem
        .layout gap, 2 gaps between 3 rows            2 * 1.25rem    = 2.5rem
        PlayerCard x2, each:
          card padding (top+bottom)                   0.75rem * 2   = 1.5rem
@@ -54,13 +54,24 @@
          row gap (header <-> captures)                             = 0.5rem
          captures row (min-height)                                 = 1.5rem
          -> 5.5rem per card, x2                                    = 11rem
-                                                       total          17.5rem
-     Rounded up to 18rem for rounding/line-height slack. This is an ESTIMATE —
-     verify empirically via a 375px-viewport screenshot in the worst-case
-     cpu-thinking state, and adjust if the board is clipped or there's
-     residual scroll. Any change to PlayerCard's .header/.captures
-     min-heights must update this constant too. */
-  width: min(100vw - 5.5rem, 100dvh - 18rem, 560px);
+       EvalBar row (cpu games only, header + bar) + its layout gap  3.5rem
+       EvalBar's own margin-top, clearing GameMenu's trigger button 2rem
+       (GameContainer.module.css .evalSlot)
+                                                       total          21.5rem
+     Rounded up to 22rem for rounding/line-height slack, plus another 1.5rem
+     on top of that (23.5rem total) — a 22rem cap still left 13-17px of
+     residual scroll on shorter real phones (iPhone SE-class 320x568,
+     375x667), measured empirically in the worst-case cpu-thinking state.
+     Applied whether or not the game is actually cpu mode (pvp never renders
+     EvalBar's row, but a single shared constant is simpler than branching
+     this formula on mode) — pvp boards end up very slightly smaller than
+     they need to on mobile as a result, which is imperceptible. This is an
+     ESTIMATE — verify empirically via a short-viewport screenshot in the
+     worst-case cpu-thinking state, and adjust if the board is clipped or
+     there's residual scroll. Any change to PlayerCard's .header/.captures
+     min-heights or EvalBar's own height/margin must update this constant
+     too. */
+  width: min(100vw - 4rem, 100dvh - 23.5rem, 560px);
 }
 
 /* Desktop has no zero-scroll mobile constraint to honor and a sidebar
@@ -68,21 +79,27 @@
    sized to use the room actually available next to GameContainer's sidebar
    rather than staying mobile-sized on a big screen.
 
-   vw term — GameContainer .container padding (2 * 2rem = 4rem) + this
+   vw term — GameContainer .container padding (2 * 1.25rem = 2.5rem) + this
    .frame's padding (2 * 0.75rem = 1.5rem) + the sidebar column
    (GameContainer.module.css .layout grid-template-columns: 22rem) + the
    grid's column gap between board and sidebar (1.25rem):
-     4rem + 1.5rem + 22rem + 1.25rem = 28.75rem
+     2.5rem + 1.5rem + 22rem + 1.25rem = 27.25rem
 
-   dvh term — same .container/.frame padding as above, no card-row height to
-   add since PlayerCard's desktop rows now cluster next to the board instead
-   of stacking beyond it: 4rem + 1.5rem = 5.5rem
+   dvh term — same .container/.frame padding as above, no per-card row
+   height to add since PlayerCard's desktop rows cluster beside the board
+   instead of stacking above/below it: 2.5rem + 1.5rem = 4rem. Plus, in cpu
+   games only, EvalBar's own full-width row above the board+sidebar group
+   plus its layout gap (same 3.5rem as the mobile formula above, and the
+   same "one shared constant, not branched on mode" tradeoff), plus the
+   2.5rem margin-top .evalSlot carries at this breakpoint to clear
+   GameMenu's (bigger, lower) desktop trigger button
+   (GameContainer.module.css) = 10rem.
 
    760px is a hard cap so the board doesn't balloon on very large/tall
    monitors — matches typical desktop chess-app board sizes. */
 @media (min-width: 64rem) {
   .board {
-    width: min(100vw - 28.75rem, 100dvh - 5.5rem, 760px);
+    width: min(100vw - 27.25rem, 100dvh - 10rem, 760px);
   }
 }
 

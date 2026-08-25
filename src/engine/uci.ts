@@ -37,3 +37,21 @@ export function isUciOk(line: string): boolean {
 export function isReadyOk(line: string): boolean {
   return line.trim() === "readyok";
 }
+
+export interface InfoScore {
+  kind: "cp" | "mate";
+  value: number;
+}
+
+const SCORE_RE = /\bscore (cp|mate) (-?\d+)/;
+
+/**
+ * Extracts the score from an `info ... score (cp|mate) <n> ...` line, as
+ * seen from the side to move in the searched position. Returns null for
+ * lines with no score field (e.g. `bestmove ...`, `uciok`).
+ */
+export function parseInfoScore(line: string): InfoScore | null {
+  const match = SCORE_RE.exec(line);
+  if (!match) return null;
+  return { kind: match[1] as "cp" | "mate", value: Number(match[2]) };
+}

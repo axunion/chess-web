@@ -1,4 +1,3 @@
-import { AlertDialog } from "@kobalte/core/alert-dialog";
 import { DropdownMenu } from "@kobalte/core/dropdown-menu";
 import {
   Clipboard,
@@ -10,9 +9,10 @@ import {
   Home,
   Undo2,
 } from "lucide-solid";
-import { createSignal, type JSX, onCleanup, Show } from "solid-js";
+import { createSignal, onCleanup, Show } from "solid-js";
 import type { GameState } from "../game/types";
 import { canOfferDraw, canUndo } from "../store/gameStore";
+import { AlertDialogShell } from "./AlertDialogShell";
 import chrome from "./dialogChrome.module.css";
 import styles from "./GameMenu.module.css";
 import { MoveHistoryDialog } from "./MoveHistoryDialog";
@@ -25,53 +25,6 @@ interface GameMenuProps {
   onUndo: () => void;
   onOfferDraw: () => void;
   getPgn: () => string;
-}
-
-interface ConfirmDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description: string;
-  confirmLabel: string;
-  confirmIcon: JSX.Element;
-  confirmClass: string;
-  onConfirm: () => void;
-}
-
-/** Shared shell for the Resign/Quit confirmation prompts. */
-function ConfirmDialog(props: ConfirmDialogProps) {
-  return (
-    <AlertDialog open={props.open} onOpenChange={props.onOpenChange}>
-      <AlertDialog.Portal>
-        <AlertDialog.Overlay class={chrome.overlay} />
-        <div class={chrome.positioner}>
-          <AlertDialog.Content class={chrome.content}>
-            <AlertDialog.Title class={chrome.title}>
-              {props.title}
-            </AlertDialog.Title>
-            <AlertDialog.Description class={chrome.description}>
-              {props.description}
-            </AlertDialog.Description>
-            <div class={chrome.actions}>
-              <AlertDialog.CloseButton
-                class={`${styles.cancelButton} ${chrome.outlineButton}`}
-              >
-                Cancel
-              </AlertDialog.CloseButton>
-              <button
-                type="button"
-                class={props.confirmClass}
-                onClick={props.onConfirm}
-              >
-                {props.confirmIcon}
-                {props.confirmLabel}
-              </button>
-            </div>
-          </AlertDialog.Content>
-        </div>
-      </AlertDialog.Portal>
-    </AlertDialog>
-  );
 }
 
 /** Overflow menu for in-game actions, floating in the play area's top-right corner. */
@@ -184,22 +137,26 @@ export function GameMenu(props: GameMenuProps) {
         </Show>
       </div>
 
-      <ConfirmDialog
+      <AlertDialogShell
         open={confirmAction() === "resign"}
         onOpenChange={(open) => !open && setConfirmAction(null)}
         title="Resign the game?"
         description="This ends the game immediately. This cannot be undone."
+        cancelLabel="Cancel"
+        cancelClass={`${styles.cancelButton} ${chrome.outlineButton}`}
         confirmLabel="Resign"
         confirmIcon={<Flag size={16} />}
         confirmClass={styles.confirmResignButton}
         onConfirm={() => handleConfirm("resign")}
       />
 
-      <ConfirmDialog
+      <AlertDialogShell
         open={confirmAction() === "quit"}
         onOpenChange={(open) => !open && setConfirmAction(null)}
         title="Return to the title screen?"
         description="The current game will be discarded."
+        cancelLabel="Cancel"
+        cancelClass={`${styles.cancelButton} ${chrome.outlineButton}`}
         confirmLabel="Return to Title"
         confirmIcon={<Home size={16} />}
         confirmClass={`${styles.confirmQuitButton} ${chrome.accentButton}`}

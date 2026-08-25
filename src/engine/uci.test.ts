@@ -8,6 +8,7 @@ import {
   isReadyOk,
   isUciOk,
   parseBestMove,
+  parseInfoScore,
 } from "./uci";
 
 describe("uci command builders", () => {
@@ -59,6 +60,41 @@ describe("parseBestMove", () => {
   it("returns null for other handshake lines", () => {
     expect(parseBestMove("uciok")).toBeNull();
     expect(parseBestMove("id name Stockfish 17.1")).toBeNull();
+  });
+});
+
+describe("parseInfoScore", () => {
+  it("extracts a centipawn score", () => {
+    expect(
+      parseInfoScore("info depth 12 seldepth 18 score cp 24 pv e2e4"),
+    ).toEqual({ kind: "cp", value: 24 });
+  });
+
+  it("extracts a negative centipawn score", () => {
+    expect(parseInfoScore("info depth 8 score cp -135 pv e7e5")).toEqual({
+      kind: "cp",
+      value: -135,
+    });
+  });
+
+  it("extracts a mate score", () => {
+    expect(parseInfoScore("info depth 5 score mate -3 pv f7f6")).toEqual({
+      kind: "mate",
+      value: -3,
+    });
+  });
+
+  it("still extracts the score from bound lines (aspiration window)", () => {
+    expect(parseInfoScore("info depth 10 score cp 50 upperbound")).toEqual({
+      kind: "cp",
+      value: 50,
+    });
+  });
+
+  it("returns null for lines with no score field", () => {
+    expect(parseInfoScore("bestmove e2e4")).toBeNull();
+    expect(parseInfoScore("uciok")).toBeNull();
+    expect(parseInfoScore("info string NNUE evaluation enabled")).toBeNull();
   });
 });
 
