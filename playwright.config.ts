@@ -1,6 +1,6 @@
 import { defineConfig, devices } from "@playwright/test";
 
-// Local-only (no CI): run by hand with `pnpm test:e2e`, see CLAUDE.md Testing.
+// Local-only (no CI): run by hand with `pnpm test:e2e`, see CLAUDE.md Verification.
 export default defineConfig({
   testDir: "./e2e",
   reporter: "list",
