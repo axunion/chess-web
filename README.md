@@ -16,7 +16,11 @@ in-progress game survives a reload.
 - Game state (position, move history, and settings) is saved to
   `localStorage` after every move and fully restored on reload, including
   mid-think CPU games
-- Move history, captured-piece trays, and resign with a confirmation step
+- Move history (a live sidebar on desktop widths, a dialog otherwise),
+  captured-piece trays, and resign with a confirmation step
+- Undo, and draw-by-agreement offers in pass-and-play
+- Copy the current game's PGN to the clipboard
+- An evaluation bar in CPU games
 
 ## Getting started
 
@@ -34,7 +38,8 @@ Then open the printed local URL. Other scripts:
 | `pnpm dev` | Start the dev server |
 | `pnpm build` | Type-check and build for production (into `dist/`) |
 | `pnpm preview` | Serve the production build locally |
-| `pnpm test` | Run the test suite |
+| `pnpm test` | Run the unit and component test suite |
+| `pnpm test:e2e` | Run the Playwright end-to-end suite (builds first) |
 | `pnpm check` | Lint, format check, and type-check |
 | `pnpm fix` | Fix lint and format issues automatically |
 
@@ -59,5 +64,4 @@ the codebase. No Unicode chess glyphs are used anywhere in the UI.
 ## Scope
 
 Out of scope by design: online play, spectating, chat, move clocks, and
-PGN import/export in the UI (PGN is used internally for persistence only).
-Undo is intentionally not implemented.
+PGN import (the UI can only copy the current game's PGN).
