@@ -33,15 +33,15 @@ pnpm dev
 
 Then open the printed local URL. Other scripts:
 
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Start the dev server |
-| `pnpm build` | Type-check and build for production (into `dist/`) |
-| `pnpm preview` | Serve the production build locally |
-| `pnpm test` | Run the unit and component test suite |
+| Command         | Description                                        |
+| --------------- | -------------------------------------------------- |
+| `pnpm dev`      | Start the dev server                               |
+| `pnpm build`    | Type-check and build for production (into `dist/`) |
+| `pnpm preview`  | Serve the production build locally                 |
+| `pnpm test`     | Run the unit and component test suite              |
 | `pnpm test:e2e` | Run the Playwright end-to-end suite (builds first) |
-| `pnpm check` | Lint, format check, and type-check |
-| `pnpm fix` | Fix lint and format issues automatically |
+| `pnpm check`    | Lint, format check, and type-check                 |
+| `pnpm fix`      | Fix lint and format issues automatically           |
 
 ## Tech stack
 
