@@ -1,7 +1,7 @@
 ---
 name: tester
 description: Runs and verifies a pending change to chess-web — pnpm test, pnpm check, the Playwright e2e suite when the change touches a flow it exercises, and the task's stated acceptance criteria. Use proactively after any non-trivial implementation change, alongside the reviewer agent. Only edits test files, never implementation code.
-tools: Bash, Read, Edit
+tools: Bash, Read, Edit, Write
 model: haiku
 effort: medium
 ---

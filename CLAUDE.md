@@ -63,4 +63,4 @@ bug: dispatch `inspector` with the full picture (it has no memory of the convers
 and treat a fix as unverified until a re-run comes back clean. It needs no confirmation
 but isn't automatic — it costs a dev server and a browser, so judge each time. Open-ended
 exploration of the UI for bugs, spec holes, and improvements is a different job: the
-`ui-loop` skill (`/ui-loop`).
+`ui-sweep` skill (`/ui-sweep`).

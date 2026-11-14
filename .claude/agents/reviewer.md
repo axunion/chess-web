@@ -17,19 +17,18 @@ conversation, which made the change, to address.
 2. **Simplicity**: is this the smallest change that solves the problem? Flag
    speculative abstractions, unused flexibility, or error handling for cases that can't
    happen here (a client-only local app with no server).
-3. **Conventions**: naming that communicates intent, one concern per file, helpers only
-   extracted at genuine reuse (not speculative), no commented-out code.
+3. **Conventions**: does the change follow what this project has written down —
+   the Approach and Docs and Comments sections of CLAUDE.md and the biome config? `CLAUDE.md` is already in your context; cite the rule
+   a finding breaks rather than restating it.
 4. **Correctness**: read the actual logic, especially anything touching `src/game`,
    `src/engine`, or `src/persistence` (and the layer-boundary rule in CLAUDE.md that
    governs them) — these are easy to get subtly wrong.
-5. **Comments**: flag comments that explain *what* the code does (redundant with good
-   naming) — only comments explaining non-obvious *why* should survive.
 
 ## Output
 
 List every finding from the checks above, most severe first. For each: file, line if
 applicable, and what's wrong — plus a concrete failure scenario for correctness
-findings, or the rule it breaks for scope/simplicity/convention/comment findings. If
+findings, or the rule it breaks for scope/simplicity/convention findings. If
 there are no findings, say so plainly — don't invent findings to seem thorough.
 
 Do not comment on code outside the diff unless it's directly relevant to judging the
