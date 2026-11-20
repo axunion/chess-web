@@ -34,7 +34,7 @@
 .content {
   position: relative;
   display: flex;
-  width: min(22rem, 100%);
+  width: min(24rem, 100%);
   flex-direction: column;
   align-items: center;
   text-align: center;
@@ -45,22 +45,24 @@
   margin: 0;
   font-family: var(--font-display);
   color: var(--ink);
-  font-size: clamp(2.75rem, 12vw, 4.5rem);
+  font-size: clamp(3.25rem, 14vw, 5.5rem);
+  line-height: 1;
   letter-spacing: -0.02em;
 }
 
 .tagline {
-  margin: 0.5rem 0 0;
+  margin: 1rem 0 0;
   color: var(--ink-muted);
   font-family: var(--font-ui);
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.14em;
+  text-wrap: balance;
 }
 
 .divider {
-  width: 2.5rem;
+  width: 3rem;
   height: 1px;
-  margin: 1.75rem 0;
-  background: var(--hairline);
+  margin: 2rem 0;
+  background: rgb(var(--accent-rgb) / 55%);
 }

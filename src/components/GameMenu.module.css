@@ -3,18 +3,27 @@
   display: inline-flex;
 }
 
+/* 2.75rem (44px) square — the touch-target minimum — in the same panel
+   chrome as the player cards beside it. */
 .menuButton {
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: 1px solid var(--ink-muted);
-  border-radius: 50%;
-  background: var(--surface);
+  width: 2.75rem;
+  height: 2.75rem;
+  border: none;
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-panel);
   color: var(--ink-muted);
   cursor: pointer;
+  transition: color var(--dur-fade) var(--ease-move);
+}
+
+.menuButton:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 /* Transient "Copy PGN" confirmation, anchored below the trigger so it reads
@@ -37,16 +46,7 @@
 
 .menuButton:hover,
 .menuButton[data-expanded] {
-  color: var(--ink);
-  border-color: var(--ink);
-}
-
-/* Matches PlayerCard's desktop header enlargement (min-height 2.5rem). */
-@media (min-width: 64rem) {
-  .menuButton {
-    width: 2.1rem;
-    height: 2.1rem;
-  }
+  color: var(--accent);
 }
 
 .menuContent {

@@ -1,11 +1,17 @@
+/* --pad is .container's padding and --frame is the board frame's total
+   padding (2 × Chessboard.module.css's --frame-padding). Both feed
+   .layout's --board-size, which Chessboard reads for the board's width —
+   the single number every other row lines up against. */
 .container {
+  --pad: 1rem;
+  --frame: 1.5rem;
   position: relative;
   display: flex;
   min-height: 100svh;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 1.25rem;
+  padding: var(--pad);
 }
 
 /* Same faint checkerboard texture as TitleScreen.module.css .board — ties the
@@ -31,164 +37,173 @@
   mask-image: radial-gradient(circle at 50% 45%, black, transparent 75%);
 }
 
-/* Children are, in DOM order: PlayerCard(opponent), Chessboard,
-   PlayerCard(self), each wrapped in a named slot div below. The cpu-engine
-   status lives inside the opponent player card itself (see PlayerCard's
-   headerAccessory), not as a separate row, so the board sits symmetrically
-   between two same-height cards. Grid areas let us reorder them into a
-   board + sidebar layout on desktop without touching the DOM order that the
-   mobile single-column layout already relies on. position/z-index lift it
-   above .decoration. */
+/* Portrait (phones, tablets): one column exactly as wide as the board frame,
+   so every row shares the board's left and right edges. The header is pinned
+   to the top and the auto margins on the two player slots center the
+   card–board–card cluster in the remaining height.
+
+   --board-size height term: every non-board row in the worst case (cpu):
+     .container padding 2 × 1rem                     2rem
+     header row                                      2.75rem
+     PlayerCard × 2 (single-row, see PlayerCard)     2 × 3rem
+     EvalBar strip                                   1.1rem
+     4 gaps × 0.75rem                                3rem
+     board frame padding                             1.5rem
+                                              total  16.35rem
+   rounded up to 18rem for line-height and safe-area slack. Any change to
+   those rows' heights must update this constant. position/z-index lift the
+   layout above .decoration. */
 .layout {
+  --board-size: min(
+    100vw -
+    2 *
+    var(--pad) -
+    var(--frame),
+    100svh -
+    18rem,
+    40rem
+  );
   position: relative;
   z-index: 1;
-  display: grid;
-  grid-template-areas:
-    "opponent"
-    "board"
-    "self";
-  gap: 1.25rem;
-  width: 100%;
-  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: calc(var(--board-size) + var(--frame));
+  min-height: calc(100svh - 2 * var(--pad));
 }
 
-/* cpu-mode-only row for EvalBar, added above everything else — a full-width
-   strip rather than a sidebar next to Chessboard, so it never competes with
-   the board's own width/aspect-ratio sizing (see EvalBar.tsx's doc comment).
-   A separate .hasEval variant (rather than always reserving the row) so pvp
-   games don't carry an empty gap where the bar would be. */
-.layout.hasEval {
-  grid-template-areas:
-    "eval"
-    "opponent"
-    "board"
-    "self";
+.headerSlot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 2.75rem;
+  grid-area: header;
 }
 
-/* margin-top clears GameMenu's floating trigger button (.menuSlot below:
-   position: absolute in .container's top-right corner), which — now that
-   .evalSlot is the very first row in .layout — would otherwise sit right
-   on top of it. Pushing the row down (not insetting its sides) keeps it
-   full width and flush with the board/cards below at every viewport,
-   avoiding the left/right asymmetry a horizontal fix would need.
-   Mobile trigger bottom = .menuSlot's top (0.75rem) + its size (1.75rem) =
-   2.5rem from .container's top; .container's own padding (1.25rem) already
-   covers the first 1.25rem of that, leaving 1.25rem to clear — 2rem below
-   adds real breathing room rather than the bare minimum (a tighter margin
-   here previously still overlapped in a real browser despite measuring
-   clear in headless testing, so this errs generous on purpose). */
-.evalSlot {
-  grid-area: eval;
-  margin-top: 2rem;
+.wordmark {
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
 }
 
-/* Desktop-only move-history sidebar panel — see the @media block below for
-   its placement and how it replaces .layout's old spacer rows. */
-.historySlot {
-  display: none;
-  min-height: 0;
-  grid-area: history;
-}
-
-/* min-width: 0 overrides this grid item's default automatic minimum size
-   (which otherwise floors at the min-content width of EngineStatus's
-   nowrap status text/Retry button) — without it, a long status string can
-   force this box wider than .layout's own column at narrow viewports,
-   clipping content (e.g. the Retry button) past .container's
-   overflow: hidden instead of letting PlayerCard's existing
-   ellipsis/shrink handling do its job. */
+/* min-width: 0 lets PlayerCard's own ellipsis handle a long label/engine
+   status instead of the slot's automatic minimum size forcing it wider than
+   the column and clipping it past .container's overflow: hidden. */
 .opponentSlot {
   min-width: 0;
+  margin-top: auto;
   grid-area: opponent;
+}
+
+.selfSlot {
+  min-width: 0;
+  margin-bottom: auto;
+  grid-area: self;
+}
+
+.evalSlot {
+  grid-area: eval;
 }
 
 .boardSlot {
   grid-area: board;
 }
 
-.selfSlot {
-  grid-area: self;
+/* Wide-layout only (see below); the dialog in GameMenu covers narrow. */
+.historySlot {
+  display: none;
+  min-height: 0;
+  grid-area: history;
 }
 
-/* The game menu trigger, fixed to .container's actual top-right corner —
-   the conventional spot for an overflow menu — rather than tucked in next
-   to the opponent card the way an earlier version was. Anchored to
-   .container itself (not .layout or a player card) so it doesn't ride
-   along with either card's position, and offset by less than .container's
-   own padding (1.25rem) so it sits closer to the real screen edge than the
-   padded play-area content does. Explicit z-index lifts it above both
-   .decoration (position: absolute, default stacking) and .layout
-   (z-index: 1). */
-.menuSlot {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 2;
-}
+/* This query is repeated in EvalBar.module.css (vertical bar), and the
+   roomy-desktop one below in PlayerCard, EngineStatus and Chessboard — keep
+   them in sync.
 
-@media (min-width: 64rem) {
-  .menuSlot {
-    top: 1rem;
-    right: 1rem;
-  }
-
-  /* Bounds .container to the viewport instead of just flooring it there
-     (min-height let it grow taller than the viewport to fit content, which
-     is exactly what caused the whole-page scroll below — see .layout's
-     height). */
+   Wide layout — desktops, and phones held landscape (too short for the
+   stacked column): board on the left, one sidebar column on the right whose
+   header/cards/history all share one width and whose top and bottom edges
+   are the board frame's. In cpu games a vertical EvalBar column sits left of
+   the board at the same height. */
+@media (min-width: 64rem), (orientation: landscape) and (max-height: 32rem) {
   .container {
     height: 100svh;
   }
 
-  /* The middle row is the move-history panel, sized auto for the two cards
-     and 1fr for the panel so it absorbs all the leftover height next to the
-     now-much-taller board — filling what used to be two empty spacer rows
-     instead of just centering the cards against blank space. This only
-     actually bounds the panel's growth (rather than letting it and the
-     whole page grow with the move count, with a matching jump the moment
-     the first move replaces the "No moves yet" placeholder) because
-     .container above now gives .layout a definite height for the 1fr row's
-     leftover space to be computed against — a grid's fr rows fall back to
-     sizing themselves by content, same as auto, under an indefinite-height
-     ancestor. */
+  /* --board-size: the largest square that fits the viewport height and the
+     width left after the sidebar, the eval column (cpu only) and the gaps
+     between them; capped so very large monitors keep a sane board. */
   .layout {
-    grid-template-columns: auto 22rem;
-    grid-template-rows: auto 1fr auto;
+    --sidebar: clamp(17rem, 25vw, 26rem);
+    --col-gap: 1.25rem;
+    --eval-col: 0rem;
+    --board-size: min(
+      100svh -
+      2 *
+      var(--pad) -
+      var(--frame),
+      100vw -
+      2 *
+      var(--pad) -
+      var(--frame) -
+      var(--sidebar) -
+      var(--col-gap) -
+      var(--eval-col),
+      60rem
+    );
+    display: grid;
+    grid-template-columns: calc(var(--board-size) + var(--frame)) var(--sidebar);
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
     grid-template-areas:
+      "board header"
       "board opponent"
       "board history"
       "board self";
-    /* Was width: 100% (from the mobile rule) — at desktop that stretches
-       .layout across the whole .container, and grid tracks default to
-       start-aligned within it, so the board+sidebar group would hug the
-       left edge instead of sitting where .container's own flex centering
-       intends. Shrink-to-fit so .container centers the actual group. */
-    width: fit-content;
-    max-width: none;
-    height: 100%;
+    column-gap: var(--col-gap);
+    row-gap: 0.75rem;
+    width: auto;
+    height: calc(var(--board-size) + var(--frame));
+    min-height: 0;
+  }
+
+  .layout.hasEval {
+    --eval-col: calc(2rem + var(--col-gap));
+    grid-template-columns:
+      2rem calc(var(--board-size) + var(--frame))
+      var(--sidebar);
+    grid-template-areas:
+      "eval board header"
+      "eval board opponent"
+      "eval board history"
+      "eval board self";
+  }
+
+  .opponentSlot,
+  .selfSlot {
+    margin: 0;
   }
 
   .historySlot {
     display: flex;
   }
+}
 
-  /* Same cpu-only eval row as the mobile rule, spanning both columns above
-     the board+sidebar group instead of squeezing into either one. */
-  .layout.hasEval {
-    grid-template-rows: auto auto 1fr auto;
-    grid-template-areas:
-      "eval eval"
-      "board opponent"
-      "board history"
-      "board self";
+/* Roomy desktops get the larger outer margin and sidebar spacing; landscape
+   phones keep the tight 1rem so the board stays as big as possible. */
+@media (min-width: 64rem) and (min-height: 40rem) {
+  .container {
+    --pad: 2rem;
   }
 
-  /* Desktop's trigger is bigger and lower than mobile's (top/right 1rem,
-     2.1rem square vs. mobile's 0.75rem/1.75rem above) — bottom edge =
-     1rem + 2.1rem = 3.1rem from .container's top, of which its 1.25rem
-     padding covers the first 1.25rem, leaving 1.85rem to clear. 2.5rem
-     below is a deliberately generous margin over that minimum. */
-  .evalSlot {
-    margin-top: 2.5rem;
+  .layout {
+    --col-gap: 1.5rem;
+    row-gap: 1rem;
+  }
+
+  .wordmark {
+    font-size: 1.75rem;
   }
 }

@@ -27,12 +27,12 @@ interface GameMenuProps {
   getPgn: () => string;
 }
 
-/** Overflow menu for in-game actions, floating in the play area's top-right corner. */
 type ConfirmAction = "resign" | "quit";
 
 /** How long the "Copied" feedback stays visible after Copy PGN is selected. */
 const COPIED_FEEDBACK_MS = 1500;
 
+/** Overflow menu for in-game actions, at the end of the game screen's header row. */
 export function GameMenu(props: GameMenuProps) {
   const [confirmAction, setConfirmAction] = createSignal<ConfirmAction | null>(
     null,
@@ -71,7 +71,7 @@ export function GameMenu(props: GameMenuProps) {
             class={styles.menuButton}
             aria-label="Game menu"
           >
-            <EllipsisVertical size={18} />
+            <EllipsisVertical size={20} />
           </DropdownMenu.Trigger>
           <DropdownMenu.Portal>
             <DropdownMenu.Content class={styles.menuContent}>

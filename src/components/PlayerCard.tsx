@@ -9,15 +9,14 @@ interface PlayerCardProps {
   color: Color;
   /** `color`'s material lead over the opponent; 0 (or negative) shows no badge. */
   advantage: number;
-  /** Whether it's `color`'s turn right now — lights the header's turn dot. */
+  /** Whether it's `color`'s turn right now — lights the turn dot. */
   active: boolean;
   /** Player-card label, e.g. "White"/"Black" (pvp) or "You"/"Stockfish · Normal" (cpu). */
   label: string;
-  /** Rendered at the end of the header row — EngineStatus on the opponent
-      card (cpu games only), omitted otherwise (the self card has none; the
-      game menu floats independently — see GameContainer's .menuSlot). A
-      slot, not a variant flag, so this component stays presentation-only
-      and composition stays in GameContainer. */
+  /** Slot rendered right after the label — EngineStatus on the opponent
+      card (cpu games only), omitted otherwise. A slot, not a variant flag,
+      so this component stays presentation-only and composition stays in
+      GameContainer. */
   headerAccessory?: JSX.Element;
 }
 
@@ -28,8 +27,8 @@ interface PieceGroup {
 
 // Collapse same-type captures into one icon + a count badge instead of one
 // icon per capture — caps the row at 5 icons (Q/R/B/N/P) regardless of how
-// many pieces were actually taken, so it can never wrap onto a second line
-// and shift the board below it (props.pieces is already sorted by value, so
+// many pieces were actually taken, so the row stays short (and scrolls
+// rather than growing the card when it doesn't fit) (props.pieces is already sorted by value, so
 // same-type entries are always adjacent).
 function groupPieces(pieces: PieceSymbol[]): PieceGroup[] {
   const groups: PieceGroup[] = [];
@@ -53,20 +52,18 @@ export function PlayerCard(props: PlayerCardProps) {
       class={styles.card}
       aria-label={`${props.label} — captured pieces${props.active ? ", to move" : ""}`}
     >
-      <div class={styles.header}>
-        <span
-          class={styles.dot}
-          classList={{ [styles.dotActive]: props.active }}
-          aria-hidden="true"
-        />
-        <span
-          class={styles.label}
-          classList={{ [styles.labelActive]: props.active }}
-        >
-          {props.label}
-        </span>
-        {props.headerAccessory}
-      </div>
+      <span
+        class={styles.dot}
+        classList={{ [styles.dotActive]: props.active }}
+        aria-hidden="true"
+      />
+      <span
+        class={styles.label}
+        classList={{ [styles.labelActive]: props.active }}
+      >
+        {props.label}
+      </span>
+      {props.headerAccessory}
       <div class={styles.captures}>
         <For each={groupPieces(props.pieces)}>
           {(group) => (
@@ -80,10 +77,10 @@ export function PlayerCard(props: PlayerCardProps) {
             </span>
           )}
         </For>
-        <Show when={props.advantage > 0}>
-          <span class={styles.advantage}>+{props.advantage}</span>
-        </Show>
       </div>
+      <Show when={props.advantage > 0}>
+        <span class={styles.advantage}>+{props.advantage}</span>
+      </Show>
     </section>
   );
 }
