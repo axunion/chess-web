@@ -20,7 +20,10 @@ conversation, which made the change, to address.
 3. **Conventions**: does the change follow what this project has written down —
    the Approach and Docs and Comments sections of CLAUDE.md and the biome config? `CLAUDE.md` is already in your context; cite the rule
    a finding breaks rather than restating it.
-4. **Correctness**: read the actual logic, especially anything touching `src/game`,
+4. **Vendored files**: `src/components/pieces/pieceSvg.tsx` must never appear in the
+   diff — its SVG markup is taken verbatim from lila (Cburnett set, GPLv2+), so edits
+   break provenance.
+5. **Correctness**: read the actual logic, especially anything touching `src/game`,
    `src/engine`, or `src/persistence` (and the layer-boundary rule in CLAUDE.md that
    governs them) — these are easy to get subtly wrong.
 

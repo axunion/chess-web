@@ -27,7 +27,7 @@ function flushAsync(): Promise<void> {
 }
 
 /**
- * A controllable `EngineAdapter` double (spec/02 §4, spec/06 §1.4): `init()`
+ * A controllable `EngineAdapter` double: `init()`
  * and `bestMove()` stay pending until the test explicitly resolves/rejects
  * them, and every call is recorded for assertions.
  */
@@ -212,7 +212,7 @@ describe("gameStore (CPU)", () => {
     expect(store.state.turn).toBe("b");
   });
 
-  describe("input lock while the CPU is involved (spec/05 §4)", () => {
+  describe("input lock while the CPU is involved", () => {
     it("ignores tapSquare while engine is thinking", async () => {
       const engine = createControllableEngine();
       const store = createGameStore(() => engine.adapter);
@@ -240,7 +240,7 @@ describe("gameStore (CPU)", () => {
     });
   });
 
-  describe("generation management (spec/03 §5)", () => {
+  describe("generation management", () => {
     it("discards a bestmove response that resolves after newGame() replaced the game", async () => {
       const engine = createControllableEngine();
       const store = createGameStore(() => engine.adapter);
@@ -279,7 +279,7 @@ describe("gameStore (CPU)", () => {
 
       expect(store.state.status).toEqual({ kind: "resigned", winner: "b" });
       expect(store.state.history.map((e) => e.san)).toEqual(["e4"]); // CPU's reply was not applied
-      // engine must not stay stuck at "thinking" after the discard (spec/02 §7).
+      // engine must not stay stuck at "thinking" after the discard.
       expect(store.state.engine).toBe("ready");
     });
 
@@ -326,7 +326,7 @@ describe("gameStore (CPU)", () => {
     });
   });
 
-  describe("error handling and retry (spec/02 §4, spec/03 §6)", () => {
+  describe("error handling and retry", () => {
     it("sets engine=error when bestMove() rejects, and retryEngine() resumes the CPU's turn", async () => {
       const engine = createControllableEngine();
       const store = createGameStore(() => engine.adapter);
@@ -487,7 +487,7 @@ describe("gameStore (CPU)", () => {
     });
   });
 
-  describe("boot() with a saved cpu-mode game (spec/02 §6)", () => {
+  describe("boot() with a saved cpu-mode game", () => {
     it("resumes engine thinking on boot() when restored mid-CPU-turn, and applies the CPU's move once bestMove() resolves", async () => {
       // Human (white) played e4; it's the CPU's (black's) turn — as if the
       // page was reloaded while the CPU was mid-think.

@@ -1,6 +1,6 @@
 ---
 name: inspector
-description: Inspects this app's rendered UI in a real browser (Playwright) — screenshots plus scrollWidth/clientWidth overflow checks across a viewport range. Two modes — verify a described UI change, or explore given screens for bugs, spec gaps, and improvements (driven by the ui-sweep skill). Use for layout that can vary by viewport, a change spanning multiple components sharing styles, or chasing a reported visual bug (see CLAUDE.md's "Subagents" section for the full gate). Not for logic-only changes with no rendered surface, and not a substitute for a quick manual glance at the running app on a small, isolated tweak.
+description: Inspects this app's rendered UI in a real browser (Playwright) — screenshots plus scrollWidth/clientWidth overflow checks across a viewport range. Two modes — verify a described UI change, or explore given screens for bugs, spec gaps, and improvements (both driven by the ui-refine skill). Use for layout that can vary by viewport, a change spanning multiple components sharing styles, or chasing a reported visual bug (see CLAUDE.md's "Subagents" section for the full gate). Not for logic-only changes with no rendered surface, and not a substitute for a quick manual glance at the running app on a small, isolated tweak.
 tools: Read, Write, Bash, TaskStop
 model: sonnet
 effort: medium

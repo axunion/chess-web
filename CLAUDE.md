@@ -61,6 +61,19 @@ small, isolated, single-property tweak: a glance at `pnpm dev` is enough. Layout
 vary by viewport, a change spanning components that share styles, or a reported visual
 bug: dispatch `inspector` with the full picture (it has no memory of the conversation),
 and treat a fix as unverified until a re-run comes back clean. It needs no confirmation
-but isn't automatic — it costs a dev server and a browser, so judge each time. Open-ended
-exploration of the UI for bugs, spec holes, and improvements is a different job: the
-`ui-sweep` skill (`/ui-sweep`).
+but isn't automatic — it costs a dev server and a browser, so judge each time. Agreeing a
+direction for a UI goal, then implementing and refining it against the rendered screen
+with no plan written up front, is a different job: the `ui-refine` skill (`/ui-refine`).
+
+## Product character
+
+A casual chess game played by one person, or two sharing a device, with nothing to
+sign in to. Calm and unhurried: "Walnut and maple. One move at a time."
+
+- Direction is a dark salon: walnut and maple board, brass accent (`--accent`),
+  espresso surfaces; tokens live in `src/theme/tokens.css`.
+- Serif display type (Iowan Old Style / Palatino) for headings, system sans for the UI.
+  Hairlines and layered shadows instead of heavy borders; motion stays around 120–160ms.
+- Avoids Unicode chess glyphs (pieces are the Cburnett SVGs only), saturated UI colors,
+  and online or social features (chat, clocks).
+- Wide screens show the move-history sidebar; narrow ones use the dialog.

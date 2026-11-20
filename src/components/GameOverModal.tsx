@@ -12,7 +12,7 @@ interface GameOverModalProps {
   onRematch: () => void;
 }
 
-/** Wait for the last move animation to finish before covering the board (spec/05 §6). */
+/** Wait for the last move animation to finish before covering the board. */
 const SHOW_DELAY_MS = 300;
 
 export function GameOverModal(props: GameOverModalProps) {

@@ -44,14 +44,14 @@ function sideLabel(color: Color, config: GameConfig): string {
 
 export function GameContainer() {
   const store = createGameStore();
-  // Restore a saved game on startup (spec/02-state-persistence.md §6); land
+  // Restore a saved game on startup; land
   // straight on the board only when there was something to restore (no save,
   // or a corrupted one that boot() already discarded, starts at the title).
   const restored = store.boot();
   const [screen, setScreen] = createSignal<Screen>(restored ? "game" : "title");
 
   // The board is flipped (black at the bottom) only for a CPU game where the
-  // human plays black (spec/04 §3, spec/05 §7 step 4); PvP is never flipped.
+  // human plays black; PvP is never flipped.
   const autoFlipped = () =>
     store.state.config.mode === "cpu" && store.state.config.playerColor === "b";
   // Manual override from the game menu, XOR'd with the automatic default —
@@ -121,7 +121,7 @@ export function GameContainer() {
             </Show>
             {/* Opponent's card (their captures) is shown above the board,
                 the player's own card below — regardless of who's playing which
-                color (spec/04 §3). */}
+                color. */}
             <div class={styles.opponentSlot}>
               <PlayerCard
                 pieces={opponentCaptured()}
@@ -165,7 +165,7 @@ export function GameContainer() {
               onQuit={returnToTitle}
               onResign={() =>
                 // CPU games always resign the human's side; PvP resigns whoever's
-                // turn it currently is (spec/05-interaction-flows.md §6).
+                // turn it currently is.
                 store.resign(
                   store.state.config.mode === "cpu"
                     ? store.state.config.playerColor

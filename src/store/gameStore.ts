@@ -16,7 +16,7 @@ import { clearGame, loadGame, saveGame } from "../persistence/storage";
 
 export interface GameStore {
   state: GameState;
-  /** Restore a saved game on startup (spec/02 §6). Returns whether a valid save was restored. */
+  /** Restore a saved game on startup. Returns whether a valid save was restored. */
   boot(): boolean;
   newGame(config: GameConfig): void;
   tapSquare(square: Square): void;
@@ -26,7 +26,7 @@ export interface GameStore {
   /** Abandons the current game and clears its save, returning to the title screen. */
   abandonGame(): void;
   requestEngineMove(): void;
-  /** Re-attempts engine initialization/thinking after `engine === "error"` (spec/02 §4). */
+  /** Re-attempts engine initialization/thinking after `engine === "error"`. */
   retryEngine(): void;
   /** Takes back the last move (cpu games: the human's move plus the engine's reply). No-op unless playing, the engine is idle, and no promotion is pending. */
   undo(): void;
@@ -66,9 +66,9 @@ export function canOfferDraw(state: GameState): boolean {
 
 /**
  * Owns the single source of reactive game state and every mutation to it
- * (see spec/01-architecture.md §1). `engineFactory` is injectable so tests
+ *. `engineFactory` is injectable so tests
  * can supply a mock `EngineAdapter` instead of the real Stockfish worker
- * (spec/02-state-persistence.md §4).
+ *.
  */
 export function createGameStore(
   engineFactory: () => EngineAdapter = () => createEngineAdapter(),
@@ -76,16 +76,16 @@ export function createGameStore(
   const chessGame = createChessGame();
   const adapter = engineFactory();
   // Prevent a leaked Stockfish Worker on every dev-mode hot-reload of this
-  // module while a CPU game is active (spec/01-architecture.md §4).
+  // module while a CPU game is active.
   import.meta.hot?.dispose(() => adapter.dispose());
   const initial = chessGame.reset();
-  /** PGN of the current game, kept in sync with every applied snapshot (not part of GameState — see spec/02 §2). */
+  /** PGN of the current game, kept in sync with every applied snapshot (not part of GameState). */
   let currentPgn = initial.pgn;
   /**
    * Bumped on every `newGame()`. `requestEngineMove()` closes over the id it
    * was issued under; a `bestMove()` response (or init failure) that
    * resolves after the id has moved on belongs to an abandoned game and is
-   * discarded rather than applied (spec/03-engine.md §5).
+   * discarded rather than applied.
    */
   let gameId = 0;
 
@@ -105,7 +105,7 @@ export function createGameStore(
     drawOffer: false,
   });
 
-  /** Input-lock rule from spec/05-interaction-flows.md §4. */
+  /** Taps are ignored while the engine is busy or the game is over. */
   function isInputLocked(): boolean {
     if (state.engine === "thinking" || state.engine === "loading") return true;
     if (
@@ -134,7 +134,7 @@ export function createGameStore(
     setState({ selected: null, legalTargets: [] });
   }
 
-  /** Persists the current game (spec/02 §5: after every move, on resign, on new game). */
+  /** Persists the current game (after every move, on resign, on new game). */
   function persist(resignedBy?: Color, drawAgreed?: boolean): void {
     saveGame({
       version: 1,
@@ -191,7 +191,7 @@ export function createGameStore(
 
   function newGame(config: GameConfig): void {
     // Invalidate any in-flight requestEngineMove() from the previous game
-    // before it can apply a stale response (spec/03-engine.md §5).
+    // before it can apply a stale response.
     gameId += 1;
     const snapshot = chessGame.reset();
     currentPgn = snapshot.pgn;
@@ -214,7 +214,7 @@ export function createGameStore(
     if (config.mode === "cpu") {
       if (config.playerColor === snapshot.turn) {
         // The human moves first — warm up the engine in the background
-        // (spec/05-interaction-flows.md §7 step 3) so the upcoming CPU turn
+        // so the upcoming CPU turn
         // doesn't have to pay the WASM-load cost when it arrives.
         warmUpEngine();
       } else {
@@ -226,7 +226,7 @@ export function createGameStore(
   }
 
   /**
-   * Restores a saved game on startup (spec/02 §6). Returns `true` when a
+   * Restores a saved game on startup. Returns `true` when a
    * valid save was found and applied, `false` when there was none or it was
    * corrupted (in which case the caller should fall back to the title screen).
    * The already-reset initial state from store creation is left untouched
@@ -271,8 +271,7 @@ export function createGameStore(
       drawOffer: false,
     });
 
-    // Resume engine thinking if the restored game is mid-CPU-turn (spec/02
-    // §6): the UI is interactive immediately, engine goes loading -> thinking
+    // Resume engine thinking if the restored game is mid-CPU-turn: the UI is interactive immediately, engine goes loading -> thinking
     // in the background.
     if (
       saved.config.mode === "cpu" &&
@@ -437,7 +436,7 @@ export function createGameStore(
    * Abandons the current game (mid-game quit, or leaving a finished game)
    * and clears its save so a later boot() can't resurrect it. Bumps `gameId`
    * first, same as newGame(), so a bestMove() response already in flight
-   * can't silently persist() a new save after the clear (spec/03 §5).
+   * can't silently persist() a new save after the clear.
    */
   function abandonGame(): void {
     gameId += 1;
@@ -445,7 +444,7 @@ export function createGameStore(
     clearGame();
   }
 
-  /** Fire-and-forget engine warm-up (init only, no move request) — spec/05 §7 step 3. */
+  /** Fire-and-forget engine warm-up (init only, no move request). */
   function warmUpEngine(): void {
     const requestId = gameId;
     setState("engine", "loading");
@@ -480,7 +479,7 @@ export function createGameStore(
         if (requestId !== gameId) return; // superseded by a new game entirely
         // Discard a response that arrives for a game that has since ended
         // (e.g. resignation mid-think) — but still bring `engine` out of
-        // "thinking" either way (spec/02 §7: thinking -> ready on stale
+        // "thinking" either way (thinking -> ready on a stale
         // discard too, not just on an applied move).
         setState("engine", "ready");
         if (state.status.kind !== "playing") return;
@@ -506,7 +505,7 @@ export function createGameStore(
   function retryEngine(): void {
     if (state.engine !== "error") return;
     // Always re-init from scratch; additionally request a move if it's the
-    // CPU's turn to think (spec/02-state-persistence.md §4).
+    // CPU's turn to think.
     if (
       state.status.kind === "playing" &&
       state.config.mode === "cpu" &&

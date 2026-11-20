@@ -21,8 +21,8 @@ export interface BestMoveResult {
 }
 
 /**
- * Promise-based facade over the Stockfish Worker's string protocol (see
- * spec/03-engine.md §4). SolidJS-independent.
+ * Promise-based facade over the Stockfish Worker's string protocol.
+ * SolidJS-independent.
  */
 export interface EngineAdapter {
   /** Spawns the worker and completes the UCI handshake. Idempotent. */
@@ -33,7 +33,7 @@ export interface EngineAdapter {
   dispose(): void;
 }
 
-/** Rejection reason for a bestMove() call superseded by a newer one (spec/03 §4). */
+/** Rejection reason for a bestMove() call superseded by a newer one. */
 export class EngineBusyError extends Error {
   constructor() {
     super("EngineAdapter: superseded by a newer bestMove() request");
@@ -214,7 +214,7 @@ export function createEngineAdapter(
   ): Promise<BestMoveResult> {
     const token = Symbol("bestMove");
     return new Promise<BestMoveResult>((resolve, reject) => {
-      // Serialization guard (spec/03 §4): stop and reject any request still
+      // Serialization guard: stop and reject any request still
       // in flight — whatever phase it's in — before starting a new one.
       if (inFlight) {
         worker?.postMessage("stop");

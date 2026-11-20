@@ -36,7 +36,7 @@ describe("gameStore (PvP)", () => {
     });
   });
 
-  describe("tapSquare state transitions (spec/05 §2)", () => {
+  describe("tapSquare state transitions", () => {
     it("#1 selects an own piece when nothing is selected, computing legal targets", () => {
       store.tapSquare("e2");
 
@@ -164,7 +164,7 @@ describe("gameStore (PvP)", () => {
     });
   });
 
-  describe("input lock (spec/05 §4, pvp-reachable cases)", () => {
+  describe("input lock (pvp-reachable cases)", () => {
     it("ignores tapSquare once the game has ended", () => {
       playFoolsMate(store);
       expect(store.state.status.kind).toBe("checkmate");

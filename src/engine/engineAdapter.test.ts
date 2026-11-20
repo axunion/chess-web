@@ -3,7 +3,7 @@ import { createEngineAdapter, EngineBusyError } from "./engineAdapter";
 
 type Listener = (event: unknown) => void;
 
-/** Minimal `Worker` stand-in (spec/06 §1.3: mock Worker via `vi.stubGlobal`). */
+/** Minimal `Worker` stand-in (mock Worker via `vi.stubGlobal`). */
 class MockWorker {
   static instances: MockWorker[] = [];
   url: string;

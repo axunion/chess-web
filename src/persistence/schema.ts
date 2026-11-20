@@ -31,7 +31,7 @@ function isGameConfig(value: unknown): value is GameConfig {
   );
 }
 
-/** Validates that `value` is a well-formed `SavedGameV1` (see spec/02-state-persistence.md §5). */
+/** Validates that `value` is a well-formed `SavedGameV1`. */
 export function isSavedGameV1(value: unknown): value is SavedGameV1 {
   if (typeof value !== "object" || value === null) return false;
   const v = value as Record<string, unknown>;

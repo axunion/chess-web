@@ -1,8 +1,7 @@
 import type { Color, PieceSymbol, Square } from "chess.js";
 
 // Re-exported so that every other layer (store, components, engine) can
-// reference these chess.js primitives without importing chess.js directly
-// (see spec/01-architecture.md §1 and §3).
+// reference these chess.js primitives without importing chess.js directly.
 export type { Color, PieceSymbol, Square };
 
 export type GameMode = "pvp" | "cpu";

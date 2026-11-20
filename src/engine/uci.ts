@@ -1,6 +1,6 @@
 /**
  * Pure UCI (Universal Chess Interface) string helpers for talking to the
- * Stockfish worker (see spec/03-engine.md §2). No Worker/DOM dependency —
+ * Stockfish worker. No Worker/DOM dependency —
  * kept pure so the protocol framing is unit-testable in isolation.
  */
 

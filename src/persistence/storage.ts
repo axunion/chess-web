@@ -1,10 +1,10 @@
 import { isSavedGameV1, type SavedGameV1, STORAGE_KEY } from "./schema";
 
 /**
- * The only module that touches `localStorage` (see spec/01-architecture.md §1).
+ * The only module that touches `localStorage`.
  * Read/write failures (quota exceeded, private browsing, etc.) never throw —
  * they are logged and treated as "no saved data" so the game keeps working
- * (spec/01-architecture.md §5).
+ *.
  */
 
 export function saveGame(data: SavedGameV1): void {

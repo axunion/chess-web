@@ -7,14 +7,14 @@ interface EngineStatusProps {
   onRetry: () => void;
 }
 
-/** Inline cpu-engine status for the opponent player card (spec/02 §4).
+/** Inline cpu-engine status for the opponent player card.
     Renders nothing in pvp — `engine` only ever leaves "off"/"ready" inside
     cpu-mode-gated store actions (warmUpEngine/requestEngineMove), so gating
     purely on this prop is equivalent to gating on config.mode === "cpu". */
 export function EngineStatus(props: EngineStatusProps) {
   const isLoading = () => props.engine === "loading";
   // "loading" is the one-time engine warm-up, which can happen on the
-  // human's own move (spec/05 §7 step 3) — worth distinguishing from
+  // human's own move — worth distinguishing from
   // "thinking", which is specifically the CPU calculating its reply.
   const isThinking = () => props.engine === "thinking";
   const isError = () => props.engine === "error";

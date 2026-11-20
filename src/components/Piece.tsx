@@ -7,7 +7,7 @@ const FILES = "abcdefgh";
 interface PieceProps {
   piece: BoardPiece;
   interactive: boolean;
-  /** Render black at the bottom, mirroring the flipped Chessboard grid (spec/04 §3). */
+  /** Render black at the bottom, mirroring the flipped Chessboard grid. */
   flipped?: boolean;
   /** Suppress the translate transition — set while the board's own flip
       animation is running, so the mid-flip position swap (see Chessboard.tsx)

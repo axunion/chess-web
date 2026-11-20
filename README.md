@@ -1,14 +1,14 @@
 # chess-web
 
 A single-page chess game for the browser. Play locally against another
-person on the same device, or against Stockfish at one of four difficulty
+person on the same device, or against Stockfish at one of eight difficulty
 levels. No server or account required — everything runs client-side, and an
 in-progress game survives a reload.
 
 ## Features
 
 - Local pass-and-play (two people, one device)
-- CPU opponent (Stockfish, 4 difficulty levels, play as White, Black, or a
+- CPU opponent (Stockfish, 8 difficulty levels, play as White, Black, or a
   random color)
 - Full standard rules via [chess.js](https://github.com/jhlywa/chess.js):
   castling, en passant, promotion, check, checkmate, stalemate, threefold
@@ -24,7 +24,7 @@ in-progress game survives a reload.
 
 ## Getting started
 
-Requires Node.js 24 and pnpm.
+Requires Node.js 26 and pnpm.
 
 ```bash
 pnpm install

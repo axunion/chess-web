@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { type SavedGameV1, STORAGE_KEY } from "../persistence/schema";
 import { createGameStore, type GameStore } from "./gameStore";
 
-describe("gameStore persistence (spec/02 §5, §6)", () => {
+describe("gameStore persistence", () => {
   let store: GameStore;
 
   beforeEach(() => {

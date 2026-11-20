@@ -35,7 +35,7 @@ const PIECE_NAMES: Record<BoardPiece["type"], string> = {
 
 interface ChessboardProps {
   state: GameState;
-  /** Render black at the bottom (spec/04 §3: CPU game with the human playing black). */
+  /** Render black at the bottom (CPU game with the human playing black). */
   flipped?: boolean;
   onTapSquare?: (square: Square) => void;
   onConfirmPromotion?: (piece: PieceSymbol) => void;
@@ -101,7 +101,7 @@ export function Chessboard(props: ChessboardProps) {
 
   // Reversing draw order (rather than a CSS transform) keeps rank/file
   // labels and piece glyphs upright once the flip animation settles
-  // (spec/04 §3).
+  //.
   const orderedRanks = createMemo(() =>
     displayFlipped() ? [...RANKS].reverse() : RANKS,
   );

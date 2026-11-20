@@ -44,7 +44,7 @@ function groupPieces(pieces: PieceSymbol[]): PieceGroup[] {
   return groups;
 }
 
-/** Player identity card: turn indicator, label, captured pieces (spec/04 §1). */
+/** Player identity card: turn indicator, label, captured pieces. */
 export function PlayerCard(props: PlayerCardProps) {
   const opponentColor = () => (props.color === "w" ? "b" : "w");
 

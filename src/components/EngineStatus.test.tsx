@@ -28,8 +28,8 @@ describe("EngineStatus", () => {
   });
 
   it("distinguishes the one-time warm-up from the cpu actually thinking", () => {
-    // "loading" also covers warm-up on the human's own move (spec/05 §7 step
-    // 3) — it must not claim the CPU is "thinking" while it's the human's turn.
+    // "loading" also covers warm-up on the human's own move —
+    // it must not claim the CPU is "thinking" while it's the human's turn.
     render(() => <EngineStatus engine="loading" onRetry={vi.fn()} />);
     expect(screen.getByText("Loading Stockfish…")).not.toBeNull();
     expect(screen.queryByText("Stockfish is thinking…")).toBeNull();

@@ -19,7 +19,7 @@ const PROMOTION_PIECES: { type: PieceSymbol; label: string }[] = [
   { type: "n", label: "knight" },
 ];
 
-/** Q/R/B/N picker shown when a pawn move reaches the last rank (spec/05 §2 row #3). */
+/** Q/R/B/N picker shown when a pawn move reaches the last rank. */
 export function PromotionDialog(props: PromotionDialogProps) {
   return (
     <Dialog
