@@ -22,12 +22,10 @@ function formatEvaluation(evaluation: EngineEvaluation | null): string {
 }
 
 /**
- * Eval bar (cpu mode only), a two-color split with the score printed inside
- * at the leading side's end. A thin horizontal strip above the board in the
- * stacked portrait layout (White always on the left), and a vertical column
- * beside the board in GameContainer's wide layout (White's fill on the same
- * edge as White's pieces) — the orientation is CSS-only, keyed to the same
- * media query as that layout. Purely presentational — mode gating is the
+ * Eval bar (cpu mode only), a two-color split with the score. A horizontal
+ * strip above the board in the stacked portrait layout, and a vertical bar
+ * with the score below it in GameContainer's wide layout — the orientation
+ * is CSS-only, keyed to the same media query as that layout. Purely presentational — mode gating is the
  * caller's job (GameContainer).
  */
 export function EvalBar(props: EvalBarProps) {
@@ -38,7 +36,7 @@ export function EvalBar(props: EvalBarProps) {
 
   return (
     <div
-      class={styles.bar}
+      class={styles.root}
       classList={{ [styles.flipped]: props.flipped }}
       role="img"
       aria-label={
@@ -47,11 +45,13 @@ export function EvalBar(props: EvalBarProps) {
           : "Evaluation: not yet available"
       }
     >
-      <div class={styles.white} style={{ "flex-basis": `${percent()}%` }} />
-      <div
-        class={styles.black}
-        style={{ "flex-basis": `${100 - percent()}%` }}
-      />
+      <div class={styles.bar}>
+        <div class={styles.white} style={{ "flex-basis": `${percent()}%` }} />
+        <div
+          class={styles.black}
+          style={{ "flex-basis": `${100 - percent()}%` }}
+        />
+      </div>
       <span
         class={styles.value}
         classList={{
