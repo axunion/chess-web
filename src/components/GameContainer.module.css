@@ -102,7 +102,7 @@
 }
 
 /* Phones (portrait, and short landscape windows) trade outer margin for
-   board size. The landscape clause matches the wide-layout query below. */
+   board size. */
 @media (max-width: 30rem), (orientation: landscape) and (max-height: 32rem) {
   .container {
     --pad: 0.5rem;
@@ -123,11 +123,9 @@
    Wide layout — desktops, and phones held landscape (too short for the
    stacked column): board on the left, one sidebar column on the right whose
    header/cards/history all share one width and whose top and bottom edges
-   are the board frame's. In cpu games a slim vertical EvalBar column sits
-   left of the board (its score row below the bar, within the board's
-   height), held closer to the frame than the sidebar is (hence the explicit
-   gap track and column-gap: 0). The eval column is wider than the bar itself
-   so the score below it has room. */
+   are the board frame's. In cpu games the EvalBar column sits left of the
+   board, closer to the frame than the sidebar is (hence the explicit gap
+   track and column-gap: 0). */
 @media (min-width: 64rem), (orientation: landscape) and (max-height: 32rem) {
   .container {
     height: 100svh;
@@ -170,7 +168,7 @@
   }
 
   .layout.hasEval {
-    --eval-col: 2.5rem;
+    --eval-col: 2.5rem; /* EvalBar's 1rem bar plus room for its score */
     grid-template-columns:
       var(--eval-col) calc(var(--board-size) + var(--frame))
       var(--col-gap) var(--sidebar);

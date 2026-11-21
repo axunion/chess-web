@@ -22,13 +22,10 @@ function formatEvaluation(evaluation: EngineEvaluation | null): string {
 }
 
 /**
- * Eval bar (cpu mode only), a two-color split with the score. A thin
- * horizontal strip above the board in the stacked portrait layout (White
- * always on the left, score inside at the leading side's end), and a slim
- * vertical column beside the board in GameContainer's wide layout (White's
- * fill on the same edge as White's pieces, score below the column since it
- * is too narrow to hold it) — the orientation is CSS-only, keyed to the same
- * media query as that layout. Purely presentational — mode gating is the
+ * Eval bar (cpu mode only), a two-color split with the score. A horizontal
+ * strip above the board in the stacked portrait layout, and a vertical bar
+ * with the score below it in GameContainer's wide layout — the orientation
+ * is CSS-only, keyed to the same media query as that layout. Purely presentational — mode gating is the
  * caller's job (GameContainer).
  */
 export function EvalBar(props: EvalBarProps) {

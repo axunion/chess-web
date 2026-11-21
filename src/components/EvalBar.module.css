@@ -83,7 +83,6 @@
     flex: 1;
     flex-direction: column-reverse;
     width: 1rem;
-    height: auto;
   }
 
   .flipped .bar {
@@ -96,6 +95,7 @@
     height: 1px;
   }
 
+  /* Comes after .valueWhite/.valueBlack, so its color wins over theirs. */
   .value {
     position: static;
     color: var(--ink);
