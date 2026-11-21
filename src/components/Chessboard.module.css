@@ -6,14 +6,10 @@
    foreshortening, then rotates back to flat. transform-style stays the
    default "flat" (not preserve-3d) so squares/pieces/labels all rotate
    together as one rigid plane, not as independently-placed 3D layers. */
-/* --frame-padding is the same thin brass border this frame always had —
-   coordinate labels below are drawn directly inside it (see .rankGutter/
-   .fileGutter), not in a second gutter layered on top of it. A custom
-   property (not a bare padding value duplicated in three places) so
-   .rankGutter/.fileGutter can share the exact number .frame itself pads by,
-   instead of it silently drifting out of sync. */
+/* --frame-padding (tokens.css) is the thin brass border; coordinate labels
+   below are drawn directly inside it (see .rankGutter/.fileGutter), and
+   GameContainer sizes its layout against it. */
 .frame {
-  --frame-padding: 0.75rem;
   position: relative;
   width: fit-content;
   margin-inline: auto;
@@ -29,78 +25,13 @@
   transform: perspective(1400px) rotateX(90deg);
 }
 
+/* Width comes from GameContainer's --board-size, which sizes the board
+   against the rest of its layout (cards, sidebar, eval column) so their edges
+   line up. */
 .board {
   position: relative;
   aspect-ratio: 1;
-  /* Sized so the whole mobile column (player cards + gaps + this square
-     board) always fits within one viewport height, with zero page scroll,
-     in both pvp and cpu games.
-
-     vw term — GameContainer .container padding (1.25rem) + this .frame's
-     padding (0.75rem), doubled for both sides: 2 * (1.25rem + 0.75rem) = 4rem.
-     Unchanged by the player-card recomposition.
-
-     dvh term — every non-board row stacked above/below it on mobile. The old
-     separate status bar row and cpu-notice row are both gone (engine status
-     moved inline into the opponent card's header; the game menu floats
-     absolutely-positioned above the layout and contributes no flow height),
-     but each player card now carries its own panel padding plus a header
-     row that didn't exist before:
-       .container padding (top+bottom)              2 * 1.25rem    = 2.5rem
-       .layout gap, 2 gaps between 3 rows            2 * 1.25rem    = 2.5rem
-       PlayerCard x2, each:
-         card padding (top+bottom)                   0.75rem * 2   = 1.5rem
-         header row (min-height)                                   = 2rem
-         row gap (header <-> captures)                             = 0.5rem
-         captures row (min-height)                                 = 1.5rem
-         -> 5.5rem per card, x2                                    = 11rem
-       EvalBar row (cpu games only, header + bar) + its layout gap  3.5rem
-       EvalBar's own margin-top, clearing GameMenu's trigger button 2rem
-       (GameContainer.module.css .evalSlot)
-                                                       total          21.5rem
-     Rounded up to 22rem for rounding/line-height slack, plus another 1.5rem
-     on top of that (23.5rem total) — a 22rem cap still left 13-17px of
-     residual scroll on shorter real phones (iPhone SE-class 320x568,
-     375x667), measured empirically in the worst-case cpu-thinking state.
-     Applied whether or not the game is actually cpu mode (pvp never renders
-     EvalBar's row, but a single shared constant is simpler than branching
-     this formula on mode) — pvp boards end up very slightly smaller than
-     they need to on mobile as a result, which is imperceptible. This is an
-     ESTIMATE — verify empirically via a short-viewport screenshot in the
-     worst-case cpu-thinking state, and adjust if the board is clipped or
-     there's residual scroll. Any change to PlayerCard's .header/.captures
-     min-heights or EvalBar's own height/margin must update this constant
-     too. */
-  width: min(100vw - 4rem, 100dvh - 23.5rem, 560px);
-}
-
-/* Desktop has no zero-scroll mobile constraint to honor and a sidebar
-   instead of stacked rows, so the board can grow well past the mobile cap —
-   sized to use the room actually available next to GameContainer's sidebar
-   rather than staying mobile-sized on a big screen.
-
-   vw term — GameContainer .container padding (2 * 1.25rem = 2.5rem) + this
-   .frame's padding (2 * 0.75rem = 1.5rem) + the sidebar column
-   (GameContainer.module.css .layout grid-template-columns: 22rem) + the
-   grid's column gap between board and sidebar (1.25rem):
-     2.5rem + 1.5rem + 22rem + 1.25rem = 27.25rem
-
-   dvh term — same .container/.frame padding as above, no per-card row
-   height to add since PlayerCard's desktop rows cluster beside the board
-   instead of stacking above/below it: 2.5rem + 1.5rem = 4rem. Plus, in cpu
-   games only, EvalBar's own full-width row above the board+sidebar group
-   plus its layout gap (same 3.5rem as the mobile formula above, and the
-   same "one shared constant, not branched on mode" tradeoff), plus the
-   2.5rem margin-top .evalSlot carries at this breakpoint to clear
-   GameMenu's (bigger, lower) desktop trigger button
-   (GameContainer.module.css) = 10rem.
-
-   760px is a hard cap so the board doesn't balloon on very large/tall
-   monitors — matches typical desktop chess-app board sizes. */
-@media (min-width: 64rem) {
-  .board {
-    width: min(100vw - 27.25rem, 100dvh - 10rem, 760px);
-  }
+  width: var(--board-size);
 }
 
 .squares {
@@ -200,7 +131,7 @@
 }
 
 /* Coordinate labels live inside .frame's own existing padding strip (see
-   --frame-padding above) — siblings of .board, not children of it, and
+   --frame-padding in tokens.css) — siblings of .board, not children of it, and
    positioned relative to .frame — always on the visually left/bottom edges
    regardless of flip (the *values* shown reorder with the rest of the
    board; which edge shows them does not, so flipping never jumps labels
@@ -242,4 +173,12 @@
   font-weight: 600;
   line-height: 1;
   user-select: none;
+}
+
+/* Bigger desktop boards get coordinates sized to match (still inside the
+   0.75rem frame strip). */
+@media (min-width: 64rem) and (min-height: 40rem) {
+  .gutterLabel {
+    font-size: 0.7rem;
+  }
 }

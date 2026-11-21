@@ -10,6 +10,20 @@
   color: var(--ink-muted);
 }
 
+/* Compact cards (phones, landscape sidebar) show "thinking" as the spinner
+   alone — the card already names Stockfish — keeping the text for screen
+   readers. The one-time "Loading…" stays visible so warm-up during the
+   human's own turn isn't mistaken for the CPU's move. Applies everywhere
+   except the roomy two-row desktop card (the query below, negated). */
+@media not all and (min-width: 64rem) and (min-height: 40rem) {
+  .thinkingText:not(.loadingText) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+  }
+}
+
 .thinkingText {
   overflow: hidden;
   white-space: nowrap;
@@ -65,11 +79,17 @@
   cursor: pointer;
 }
 
-/* Matches PlayerCard's desktop header enlargement. */
-@media (min-width: 64rem) {
+/* Desktop's two-row card: the status takes the name row's leftover width
+   (basis 0, so it ellipsizes instead of wrapping and resizing the card). */
+@media (min-width: 64rem) and (min-height: 40rem) {
+  .thinking,
+  .error {
+    flex: 1 1 0;
+  }
+
   .thinkingText,
   .errorText {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
   }
 
   .spinner {

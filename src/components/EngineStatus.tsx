@@ -30,7 +30,12 @@ export function EngineStatus(props: EngineStatusProps) {
         {(text) => (
           <div class={styles.thinking} role="status" aria-live="polite">
             <span class={styles.spinner} aria-hidden="true" />
-            <span class={styles.thinkingText}>{text()}</span>
+            <span
+              class={styles.thinkingText}
+              classList={{ [styles.loadingText]: isLoading() }}
+            >
+              {text()}
+            </span>
           </div>
         )}
       </Show>

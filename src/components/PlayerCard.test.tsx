@@ -102,7 +102,7 @@ describe("PlayerCard", () => {
     ).not.toBeNull();
   });
 
-  it("renders a header accessory at the end of the header row", () => {
+  it("renders the accessory slot", () => {
     render(() => (
       <PlayerCard
         pieces={[]}

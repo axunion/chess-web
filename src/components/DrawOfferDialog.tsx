@@ -15,7 +15,7 @@ interface DrawOfferDialogProps {
  *
  * Reuses dialogChrome's overlay/positioner (z-index 3) via AlertDialogShell,
  * the same as GameOverModal and GameMenu's Resign/Quit prompts — this is
- * load-bearing: while open it sits above .menuSlot (z-index 2), so the menu
+ * load-bearing: while open it sits above the game layout (z-index 1), so the menu
  * (and therefore resign/undo/new-game) is unreachable and `status` can't
  * change underneath it. If this dialog ever stops using that shared chrome,
  * drawOffer's reset needs to be revisited everywhere a full GameState

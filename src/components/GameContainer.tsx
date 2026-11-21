@@ -114,11 +114,26 @@ export function GameContainer() {
               [styles.hasEval]: isCpu(),
             }}
           >
-            <Show when={isCpu()}>
-              <div class={styles.evalSlot}>
-                <EvalBar evaluation={store.state.evaluation} />
-              </div>
-            </Show>
+            <header class={styles.headerSlot}>
+              <span class={styles.wordmark}>Chess</span>
+              <GameMenu
+                state={store.state}
+                onQuit={returnToTitle}
+                onResign={() =>
+                  // CPU games always resign the human's side; PvP resigns whoever's
+                  // turn it currently is.
+                  store.resign(
+                    store.state.config.mode === "cpu"
+                      ? store.state.config.playerColor
+                      : store.state.turn,
+                  )
+                }
+                onFlip={toggleFlip}
+                onUndo={store.undo}
+                onOfferDraw={store.offerDraw}
+                getPgn={store.getPgn}
+              />
+            </header>
             {/* Opponent's card (their captures) is shown above the board,
                 the player's own card below — regardless of who's playing which
                 color. */}
@@ -137,6 +152,14 @@ export function GameContainer() {
                 }
               />
             </div>
+            <Show when={isCpu()}>
+              <div class={styles.evalSlot}>
+                <EvalBar
+                  evaluation={store.state.evaluation}
+                  flipped={flipped()}
+                />
+              </div>
+            </Show>
             <div class={styles.boardSlot}>
               <Chessboard
                 state={store.state}
@@ -158,25 +181,6 @@ export function GameContainer() {
             <div class={styles.historySlot}>
               <MoveHistoryPanel history={store.state.history} />
             </div>
-          </div>
-          <div class={styles.menuSlot}>
-            <GameMenu
-              state={store.state}
-              onQuit={returnToTitle}
-              onResign={() =>
-                // CPU games always resign the human's side; PvP resigns whoever's
-                // turn it currently is.
-                store.resign(
-                  store.state.config.mode === "cpu"
-                    ? store.state.config.playerColor
-                    : store.state.turn,
-                )
-              }
-              onFlip={toggleFlip}
-              onUndo={store.undo}
-              onOfferDraw={store.offerDraw}
-              getPgn={store.getPgn}
-            />
           </div>
           <DrawOfferDialog
             open={store.state.drawOffer}

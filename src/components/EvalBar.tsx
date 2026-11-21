@@ -5,6 +5,9 @@ import { evalToWhitePercent } from "./evalToWhitePercent";
 
 interface EvalBarProps {
   evaluation: EngineEvaluation | null;
+  /** Whether the board shows black at the bottom — the vertical (wide
+      layout) bar keeps White's fill on the same side as White's pieces. */
+  flipped: boolean;
 }
 
 /** "+1.4", "-0.3", or "M3"/"M-2" for a forced mate; "–" while unevaluated —
@@ -19,15 +22,13 @@ function formatEvaluation(evaluation: EngineEvaluation | null): string {
 }
 
 /**
- * Horizontal eval bar (cpu mode only): a "White"/score/"Black" header sits
- * above a two-color bar, White always on the left — the number and side
- * labels read as a unit before the fill, rather than crowding the bar
- * itself. Labels are the color names, not player names: the bar's
- * left/right split is a color split, and stays accurate regardless of
- * which side the human is playing (unlike the board, this strip never
- * flips). A full-width strip above the board rather than a sidebar next to
- * it, so it never competes with Chessboard's own width/aspect-ratio sizing.
- * Purely presentational — mode gating is the caller's job (GameContainer).
+ * Eval bar (cpu mode only), a two-color split with the score printed inside
+ * at the leading side's end. A thin horizontal strip above the board in the
+ * stacked portrait layout (White always on the left), and a vertical column
+ * beside the board in GameContainer's wide layout (White's fill on the same
+ * edge as White's pieces) — the orientation is CSS-only, keyed to the same
+ * media query as that layout. Purely presentational — mode gating is the
+ * caller's job (GameContainer).
  */
 export function EvalBar(props: EvalBarProps) {
   const percent = createMemo(() =>
@@ -36,24 +37,31 @@ export function EvalBar(props: EvalBarProps) {
   const text = createMemo(() => formatEvaluation(props.evaluation));
 
   return (
-    <div class={styles.wrapper}>
-      <div class={styles.header} aria-hidden="true">
-        <span class={styles.sideLabel}>White</span>
-        <span class={styles.value}>{text()}</span>
-        <span class={styles.sideLabel}>Black</span>
-      </div>
+    <div
+      class={styles.bar}
+      classList={{ [styles.flipped]: props.flipped }}
+      role="img"
+      aria-label={
+        props.evaluation
+          ? `Evaluation: ${text()}`
+          : "Evaluation: not yet available"
+      }
+    >
+      <div class={styles.white} style={{ "flex-basis": `${percent()}%` }} />
       <div
-        class={styles.bar}
-        role="img"
-        aria-label={
-          props.evaluation
-            ? `Evaluation: ${text()}`
-            : "Evaluation: not yet available"
-        }
+        class={styles.black}
+        style={{ "flex-basis": `${100 - percent()}%` }}
+      />
+      <span
+        class={styles.value}
+        classList={{
+          [styles.valueWhite]: percent() >= 50,
+          [styles.valueBlack]: percent() < 50,
+        }}
+        aria-hidden="true"
       >
-        <div class={styles.white} style={{ width: `${percent()}%` }} />
-        <div class={styles.black} style={{ width: `${100 - percent()}%` }} />
-      </div>
+        {text()}
+      </span>
     </div>
   );
 }

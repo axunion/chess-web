@@ -6,29 +6,26 @@
   margin-bottom: 1.6rem;
 }
 
-/* Shared pill visual language for Mode — a single track, divided by
-   hairlines, with the selected segment filled solid. Color and Difficulty
+/* Shared pill visual language for Mode — a hairline track holding one
+   inner pill per option, the selected one tinted. Color and Difficulty
    have their own icon/slider treatment below since a text pill doesn't fit
    either (see .colorPicker, .sliderTrack). */
 .segmented {
   display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
   border: 1px solid var(--hairline);
   border-radius: 999px;
-  overflow: hidden;
 }
 
 .segmentedItem {
   flex: 1;
-  border-right: 1px solid var(--hairline);
-}
-
-.segmentedItem:last-child {
-  border-right: none;
+  border-radius: 999px;
 }
 
 .segmentedItem:has(:focus-visible) {
   outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline-offset: 2px;
 }
 
 /* The label is the actual click target (native label-for-input), so it — not
@@ -36,7 +33,8 @@
 .segmentedLabel {
   display: block;
   overflow: hidden;
-  padding: 0.9rem 0.4rem;
+  padding: 0.7rem 0.4rem;
+  border-radius: 999px;
   color: var(--ink);
   font-family: var(--font-ui);
   font-size: 0.9rem;
@@ -49,11 +47,20 @@
     color var(--dur-fade) var(--ease-move);
 }
 
-/* A wood-frame "inlay" fill marks the chosen option — kept distinct from the
-   Start button's --accent (so accent reads as "the one thing to click") and
-   lighter than --ink (so the track doesn't outweigh the wordmark above it). */
+/* The chosen option gets a brass-tinted fill and hairline ring — clearly
+   "on" against the unselected half, yet quieter than the solid --accent
+   Start button, which stays "the one thing to click". */
 .segmentedLabel[data-checked] {
-  background: var(--board-frame);
+  background: rgb(var(--accent-rgb) / 16%);
+  box-shadow: inset 0 0 0 1px rgb(var(--accent-rgb) / 55%);
+  font-weight: 600;
+}
+
+.segmentedLabel:not([data-checked]) {
+  color: var(--ink-muted);
+}
+
+.segmentedLabel:not([data-checked]):hover {
   color: var(--ink);
 }
 
@@ -66,21 +73,21 @@
 .colorPicker {
   display: flex;
   justify-content: center;
-  gap: 1.1rem;
+  gap: 1.75rem;
 }
 
 .colorOptionLabel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.5rem;
   cursor: pointer;
 }
 
 .colorSwatch {
   position: relative;
-  width: 2.75rem;
-  height: 2.75rem;
+  width: 3.25rem;
+  height: 3.25rem;
   overflow: hidden;
   border: 1px solid var(--board-frame);
   border-radius: 50%;
@@ -115,7 +122,7 @@
 .colorCaption {
   color: var(--ink-muted);
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -210,7 +217,7 @@
   justify-content: space-between;
   color: var(--ink-muted);
   font-family: var(--font-ui);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
@@ -240,11 +247,14 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   cursor: pointer;
-  transition: background var(--dur-fade) var(--ease-move);
+  transition:
+    background var(--dur-fade) var(--ease-move),
+    box-shadow var(--dur-fade) var(--ease-move);
 }
 
 .startButton:hover {
-  background: var(--ink);
+  background: rgb(var(--accent-rgb) / 85%);
+  box-shadow: 0 0 1.5rem rgb(var(--accent-rgb) / 30%);
 }
 
 .startButton:focus-visible {

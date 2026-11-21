@@ -6,8 +6,8 @@ interface MoveHistoryPanelProps {
   history: HistoryEntry[];
 }
 
-/** Always-visible desktop sidebar counterpart to MoveHistoryDialog — CSS-hidden
-    below GameContainer's 64rem breakpoint, where the dialog is used instead. */
+/** Always-visible sidebar counterpart to MoveHistoryDialog — CSS-hidden
+    outside GameContainer's wide layout, where the dialog is used instead. */
 export function MoveHistoryPanel(props: MoveHistoryPanelProps) {
   return (
     <div class={styles.panel}>

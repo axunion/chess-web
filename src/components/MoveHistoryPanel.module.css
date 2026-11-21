@@ -1,6 +1,7 @@
 .panel {
   display: flex;
   flex-direction: column;
+  width: 100%;
   min-height: 0;
   height: 100%;
   background: var(--surface-raised);
@@ -11,7 +12,7 @@
 .title {
   flex-shrink: 0;
   margin: 0;
-  padding: 0.9rem 1.25rem 0.4rem;
+  padding: 1rem 1.1rem 0.25rem;
   color: var(--ink-muted);
   font-family: var(--font-ui);
   font-size: 0.75rem;

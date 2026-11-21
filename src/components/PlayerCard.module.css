@@ -1,25 +1,18 @@
+/* One row on phones and in the landscape sidebar (dot · name · engine status
+   … captures · +N) so the board gets the height. Roomy desktops wrap the
+   captures onto a second full-width row (see the @media block). The fixed
+   min-height keeps both cards the same height whether or not anything has
+   been captured, so the board never shifts. GameContainer's --board-size
+   budget assumes the 3rem phone height. */
 .card {
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 0.75rem 0.9rem;
+  align-items: center;
+  gap: 0.5rem 0.6rem;
+  min-height: 3rem;
+  padding: 0.5rem 0.85rem;
   background: var(--surface-raised);
   border-radius: var(--radius);
   box-shadow: var(--shadow-panel);
-}
-
-/* Fixed min-height, identical on both cards — this is what keeps the two
-   cards the same total height so the board centers between them. Must fit
-   the tallest header-row content on either card (currently only the
-   opponent card's inline engine-status text/spinner/retry button — the self
-   card has no accessory). Keep both cards' header min-height in sync if
-   EngineStatus's height changes, or the board goes visually off-center
-   again. */
-.header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 2rem;
 }
 
 .dot {
@@ -28,7 +21,10 @@
   height: 0.5rem;
   border-radius: 50%;
   background: var(--ink-muted);
-  transition: background-color var(--dur-fade) var(--ease-move);
+  opacity: 0.6;
+  transition:
+    background-color var(--dur-fade) var(--ease-move),
+    opacity var(--dur-fade) var(--ease-move);
 }
 
 /* Replaces the old whole-tray --hl-last-move wash — quieter, and the glow
@@ -36,17 +32,17 @@
 .dotActive {
   background: var(--accent);
   box-shadow: 0 0 0.3rem rgb(var(--accent-rgb) / 60%);
+  opacity: 1;
 }
 
 .label {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
   color: var(--ink-muted);
-  font-family: var(--font-ui);
-  font-size: 0.75rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  line-height: 1.2;
   white-space: nowrap;
   text-overflow: ellipsis;
   transition: color var(--dur-fade) var(--ease-move);
@@ -56,25 +52,27 @@
   color: var(--ink);
 }
 
-/* Its own scroll container (not the whole card) so the header stays put and
-   pinned even if enough piece types are captured to need scrolling. Always
-   mounted, even with nothing captured — giving it real card chrome (see
-   .card above) is what reads as intentional, not hiding this row. */
+/* Its own scroll container so a long capture list never pushes the label or
+   the card wider; margin-left: auto right-aligns it on the single-row
+   layout. */
 .captures {
   display: flex;
+  flex: 0 1 auto;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 0.4rem;
-  min-height: 1.5rem;
+  gap: 0.35rem;
   min-width: 0;
+  min-height: 1.5rem;
+  margin-left: auto;
   overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .pieceGroup {
   display: inline-flex;
   flex-shrink: 0;
   align-items: center;
-  gap: 0.05rem;
+  gap: 0.1rem;
 }
 
 .piece {
@@ -96,57 +94,54 @@
   font-family: var(--font-ui);
   font-size: 0.7rem;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
 }
 
 .advantage {
   flex-shrink: 0;
-  margin-left: 0.15rem;
-  color: var(--ink-muted);
+  color: var(--accent);
   font-family: var(--font-ui);
   font-size: 0.8rem;
   font-weight: 700;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Desktop sidebar cards sit beside a much larger board (GameContainer's
-   22rem column vs. the board's own size), and pin to the board's top/bottom
-   edges rather than stacking together — at the same size as mobile they
-   read as an afterthought next to that much bigger neighbor. Scale up in
-   step with the extra room, not just the padding, so it reads as one
-   proportionate card rather than a small one with a wide margin. */
-@media (min-width: 64rem) {
+/* Desktop sidebar cards: name row on top (with the engine status and +N at
+   its right end), captures on their own full-width row below. */
+@media (min-width: 64rem) and (min-height: 40rem) {
   .card {
-    gap: 0.65rem;
-    padding: 1.25rem 1.5rem;
-  }
-
-  .header {
-    min-height: 2.5rem;
+    flex-wrap: wrap;
+    gap: 0.6rem 0.65rem;
+    padding: 0.9rem 1.1rem;
   }
 
   .dot {
-    width: 0.65rem;
-    height: 0.65rem;
+    width: 0.6rem;
+    height: 0.6rem;
   }
 
   .label {
-    font-size: 0.95rem;
+    font-size: 1.15rem;
   }
 
   .captures {
-    gap: 0.5rem;
-    min-height: 1.85rem;
+    order: 1;
+    flex-basis: 100%;
+    min-height: 1.75rem;
+    margin-left: 0;
   }
 
   .piece {
-    width: 1.85rem;
-    height: 1.85rem;
+    width: 1.75rem;
+    height: 1.75rem;
   }
 
   .count {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
   }
 
   .advantage {
-    font-size: 0.95rem;
+    margin-left: auto;
+    font-size: 0.9rem;
   }
 }
