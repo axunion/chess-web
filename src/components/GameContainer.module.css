@@ -125,9 +125,9 @@
    header/cards/history all share one width and whose top and bottom edges
    are the board frame's. In cpu games a slim vertical EvalBar column sits
    left of the board (its score row below the bar, within the board's
-   height), held closer to the frame than the
-   sidebar is (hence the explicit gap track and column-gap: 0). The eval
-   column is wider than the bar itself so the score below it has room. */
+   height), held closer to the frame than the sidebar is (hence the explicit
+   gap track and column-gap: 0). The eval column is wider than the bar itself
+   so the score below it has room. */
 @media (min-width: 64rem), (orientation: landscape) and (max-height: 32rem) {
   .container {
     height: 100svh;
