@@ -8,6 +8,7 @@
   --board-light: #dfc38a; /* maple */
   --board-dark: #8b5a37; /* walnut */
   --board-frame: #55392a; /* outer frame, espresso walnut */
+  --frame-padding: 0.75rem; /* board frame border, holds the coordinates */
 
   /* Feedback overlays (semi-transparent, layered on squares) */
   --hl-selected: rgb(224 184 51 / 55%);

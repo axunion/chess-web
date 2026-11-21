@@ -13,12 +13,15 @@
 /* Compact cards (phones, landscape sidebar) show "thinking" as the spinner
    alone — the card already names Stockfish — keeping the text for screen
    readers. The one-time "Loading…" stays visible so warm-up during the
-   human's own turn isn't mistaken for the CPU's move. */
-.thinkingText:not(.loadingText) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  clip-path: inset(50%);
+   human's own turn isn't mistaken for the CPU's move. Applies everywhere
+   except the roomy two-row desktop card (the query below, negated). */
+@media not all and (min-width: 64rem) and (min-height: 40rem) {
+  .thinkingText:not(.loadingText) {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    clip-path: inset(50%);
+  }
 }
 
 .thinkingText {
@@ -82,13 +85,6 @@
   .thinking,
   .error {
     flex: 1 1 0;
-  }
-
-  .thinkingText:not(.loadingText) {
-    position: static;
-    width: auto;
-    height: auto;
-    clip-path: none;
   }
 
   .thinkingText,

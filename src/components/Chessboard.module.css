@@ -6,14 +6,10 @@
    foreshortening, then rotates back to flat. transform-style stays the
    default "flat" (not preserve-3d) so squares/pieces/labels all rotate
    together as one rigid plane, not as independently-placed 3D layers. */
-/* --frame-padding is the same thin brass border this frame always had —
-   coordinate labels below are drawn directly inside it (see .rankGutter/
-   .fileGutter), not in a second gutter layered on top of it. A custom
-   property (not a bare padding value duplicated in three places) so
-   .rankGutter/.fileGutter can share the exact number .frame itself pads by,
-   instead of it silently drifting out of sync. */
+/* --frame-padding (tokens.css) is the thin brass border; coordinate labels
+   below are drawn directly inside it (see .rankGutter/.fileGutter), and
+   GameContainer sizes its layout against it. */
 .frame {
-  --frame-padding: 0.75rem;
   position: relative;
   width: fit-content;
   margin-inline: auto;
@@ -31,11 +27,11 @@
 
 /* Width comes from GameContainer's --board-size, which sizes the board
    against the rest of its layout (cards, sidebar, eval column) so their edges
-   line up; the fallback only applies when rendered on its own. */
+   line up. */
 .board {
   position: relative;
   aspect-ratio: 1;
-  width: var(--board-size, min(100vw - 4rem, 560px));
+  width: var(--board-size);
 }
 
 .squares {
@@ -135,7 +131,7 @@
 }
 
 /* Coordinate labels live inside .frame's own existing padding strip (see
-   --frame-padding above) — siblings of .board, not children of it, and
+   --frame-padding in tokens.css) — siblings of .board, not children of it, and
    positioned relative to .frame — always on the visually left/bottom edges
    regardless of flip (the *values* shown reorder with the rest of the
    board; which edge shows them does not, so flipping never jumps labels
