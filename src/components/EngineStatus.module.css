@@ -76,7 +76,6 @@
   cursor: pointer;
 }
 
-/* Matches PlayerCard's two-row desktop card. */
 /* Desktop's two-row card: the status takes the name row's leftover width
    (basis 0, so it ellipsizes instead of wrapping and resizing the card). */
 @media (min-width: 64rem) and (min-height: 40rem) {

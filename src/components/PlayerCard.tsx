@@ -27,9 +27,9 @@ interface PieceGroup {
 
 // Collapse same-type captures into one icon + a count badge instead of one
 // icon per capture — caps the row at 5 icons (Q/R/B/N/P) regardless of how
-// many pieces were actually taken, so the row stays short (and scrolls
-// rather than growing the card when it doesn't fit) (props.pieces is already sorted by value, so
-// same-type entries are always adjacent).
+// many pieces were actually taken, so the row stays short and scrolls
+// rather than growing the card when it doesn't fit. props.pieces is already
+// sorted by value, so same-type entries are always adjacent.
 function groupPieces(pieces: PieceSymbol[]): PieceGroup[] {
   const groups: PieceGroup[] = [];
   for (const type of pieces) {
