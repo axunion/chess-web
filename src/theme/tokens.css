@@ -25,7 +25,7 @@
   /* RGB channels, exposed separately so alpha-blended washes/glows can
      reference the same color without retyping it (e.g. rgb(var(--accent-rgb) / 60%)). */
   --accent-rgb: 201 162 39;
-  --danger-rgb: 239 93 99;
+  --danger-rgb: 208 126 106; /* muted brick; ≥4.5:1 on --surface, --surface-raised and its own 10% wash */
   --accent: rgb(var(--accent-rgb)); /* brass/gold */
   --danger: rgb(
     var(--danger-rgb)

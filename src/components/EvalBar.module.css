@@ -1,3 +1,9 @@
+/* .root holds the fill bar and the score; in portrait the score overlays the
+   bar, so .root is exactly the bar's height. */
+.root {
+  position: relative;
+}
+
 /* Portrait: a thin full-width strip directly above the board (1.1rem tall —
    GameContainer's --board-size budget assumes it). */
 .bar {
@@ -58,16 +64,29 @@
   color: var(--ink);
 }
 
-/* Wide layout (same query as GameContainer's): a vertical column the
-   board's height, White's fill at the bottom — or at the top when the board
-   is flipped, so it stays on White's side of the board. */
+/* Wide layout (same query as GameContainer's): a slim vertical bar plus the
+   score below it, together the board's height. White's fill is at the
+   bottom — or at the top when the board is flipped, so it stays on White's
+   side of the board. The bar is too narrow for the score, so it sits
+   centered below the bar on the page surface, in the extra width
+   GameContainer gives the eval column. */
 @media (min-width: 64rem), (orientation: landscape) and (max-height: 32rem) {
-  .bar {
-    flex-direction: column-reverse;
+  .root {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
     height: 100%;
   }
 
-  .bar.flipped {
+  .bar {
+    flex: 1;
+    flex-direction: column-reverse;
+    width: 1rem;
+    height: auto;
+  }
+
+  .flipped .bar {
     flex-direction: column;
   }
 
@@ -78,29 +97,9 @@
   }
 
   .value {
-    top: auto;
-    font-size: 0.66rem;
-    right: 0;
-    left: 0;
-    text-align: center;
+    position: static;
+    color: var(--ink);
+    font-size: 0.75rem;
     transform: none;
-  }
-
-  .valueWhite {
-    bottom: 0.5rem;
-  }
-
-  .valueBlack {
-    top: 0.5rem;
-  }
-
-  .flipped .valueWhite {
-    top: 0.5rem;
-    bottom: auto;
-  }
-
-  .flipped .valueBlack {
-    top: auto;
-    bottom: 0.5rem;
   }
 }

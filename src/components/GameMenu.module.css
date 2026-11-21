@@ -94,7 +94,7 @@
 }
 
 .menuItemDanger[data-highlighted] {
-  background: rgb(var(--danger-rgb) / 16%);
+  background: rgb(var(--danger-rgb) / 10%);
 }
 
 .menuSeparator {
